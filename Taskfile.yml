@@ -1,0 +1,47 @@
+version: "3"
+
+vars:
+  APP: bob
+  OUT: dist/{{.APP}}
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  fmt:
+    desc: Format source files
+    cmds:
+      - deno fmt
+
+  lint:
+    desc: Lint source files
+    cmds:
+      - deno lint
+
+  check:
+    desc: Type-check the CLI entrypoint
+    cmds:
+      - deno check src/main.ts
+
+  test:
+    desc: Run tests
+    cmds:
+      - deno test
+
+  run:
+    desc: Run the CLI locally
+    cmds:
+      - deno run src/main.ts {{.CLI_ARGS}}
+
+  build:
+    desc: Compile the CLI into an executable
+    cmds:
+      - mkdir -p dist
+      - deno compile --output {{.OUT}} src/main.ts
+
+  clean:
+    desc: Remove build and coverage output
+    cmds:
+      - rm -rf dist coverage
