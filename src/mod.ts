@@ -14,6 +14,7 @@ export function runCli(args: string[]): void {
   }
 
   for (let i = 0; i < args.length; i += 1) {
+      // TODO extract themes & specified json
     console.log(args[i]);
   }
 
@@ -35,12 +36,14 @@ function plan(): void {
   // TODO read plan from cli
   const plan = JSON.parse(Deno.readTextFileSync("sample.json")) as Plan
 
-  const planJs = Deno.readTextFileSync("plan.js")
-  const planCss = Deno.readTextFileSync("plan.css")
+  const title = plan.title;
+  const planJs = Deno.readTextFileSync("plan.js");
+  const planCss = Deno.readTextFileSync("plan.css");
+  const themeCss = Deno.readTextFileSync("./themes/catppuccin-latte.css");
 
   const html = `<!DOCTYPE html>
   <html lang="en">
-  ${createHtmlHead(planCss)}
+  ${createHtmlHead(title, planCss, themeCss)}
   <body>
     <aside id="sidebar"></aside>
     <main id="content-area"></main>
@@ -64,13 +67,13 @@ function map() {
   console.log("TODO: map")
 }
 
-function createHtmlHead(planCss: string): string {
+function createHtmlHead(title: string, planCss: string, themeCss: string): string {
   return `
     <head>
+        <title>${title}</title>
         <meta charset="UTF-8">
-        <style>
-${planCss}
-        </style>
+        <style>${themeCss}</style>
+        <style>${planCss}</style>
     </head>
     `
 }

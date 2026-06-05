@@ -34,7 +34,11 @@ tasks:
     desc: Run the CLI
     cmds:
       - deno run --allow-read --allow-write src/main.ts {{.CLI_ARGS}}
-
+  run-plan:
+    desc: Run sample plan
+    cmds:
+      - deno run --allow-read --allow-write src/main.ts plan
+      -
   build:
     desc: Compile the CLI into an executable
     cmds:
