@@ -1,7 +1,7 @@
 import type { Plan } from "./plan.ts"
 
 export function runCli(args: string[]): void {
-  const [command] = args
+  const command = args[0]
 
   if (command === "help" || command === "--help" || command === "-h") {
     printHelp()
@@ -13,11 +13,27 @@ export function runCli(args: string[]): void {
     return
   }
 
-  console.log("bob cli")
+  for (let i = 0; i < args.length; i += 1) {
+    console.log(args[i]);
+  }
 
+  console.log("bob cli");
+
+  if (command === "plan") {
+    plan();
+  } else if (command === "map") {
+    map();
+  } else {
+    printHelp();
+    console.log(); // add an empty line
+    console.error("Unknown command:", command);
+    Deno.exit(1);
+  }
+}
+
+function plan(): void {
+  // TODO read plan from cli
   const plan = JSON.parse(Deno.readTextFileSync("sample.json")) as Plan
-
-  console.log(plan.title)
 
   const planJs = Deno.readTextFileSync("plan.js")
   const planCss = Deno.readTextFileSync("plan.css")
@@ -44,6 +60,10 @@ export function runCli(args: string[]): void {
   Deno.writeTextFileSync("dist/plan.html", html)
 }
 
+function map() {
+  console.log("TODO: map")
+}
+
 function createHtmlHead(planCss: string): string {
   return `
     <head>
@@ -63,5 +83,7 @@ Usage:
 
 Commands:
   help      Show this help text
-  version   Show the CLI version`)
+  version   Show the CLI version
+  plan      Render a plan based on the given input
+  map       Render a map based on the given input`)
 }
