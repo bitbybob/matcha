@@ -1,0 +1,791 @@
+{
+  "schemaVersion": 1,
+  "id": "swiftui-calculator",
+  "title": "SwiftUI Calculator Implementation Plan",
+  "project": "swiftui-calculator",
+  "status": "planned",
+  "summary": [
+    "Build a polished calculator app in Swift using SwiftUI, with a small calculation engine separated from the view layer so arithmetic behavior can be tested without UI automation.",
+    "The plan starts with project structure and core expression behavior, then builds the visual calculator surface, input handling, memory features, history, accessibility, persistence, and release readiness.",
+    "The app should feel native on iPhone and iPad, support portrait and landscape layouts, and preserve predictable calculator behavior for common numeric edge cases."
+  ],
+  "metadata": {
+    "platforms": ["iOS"],
+    "language": "Swift",
+    "uiFramework": "SwiftUI",
+    "minimumTarget": "iOS 17",
+    "architecture": "SwiftUI views backed by a tested calculator engine"
+  },
+  "sections": [
+    {
+      "id": "design-rules",
+      "title": "Design Rules",
+      "kind": "rules",
+      "items": [
+        {
+          "title": "Engine first",
+          "text": "Arithmetic, formatting, memory, and history behavior must live outside SwiftUI views."
+        },
+        {
+          "title": "Native interaction",
+          "text": "Buttons, gestures, haptics, dynamic type, and accessibility labels should follow iOS expectations."
+        },
+        {
+          "title": "Predictable numbers",
+          "text": "Decimal input, rounding, overflow, divide-by-zero, and repeated equals behavior must be explicitly specified and tested."
+        }
+      ]
+    },
+    {
+      "id": "core-architecture",
+      "title": "Core Architecture",
+      "kind": "architecture",
+      "rows": [
+        {
+          "component": "CalculatorEngine",
+          "responsibility": "Owns numeric state, operators, expression evaluation, memory state, and error handling."
+        },
+        {
+          "component": "CalculatorViewModel",
+          "responsibility": "Adapts engine state to SwiftUI display strings, button enabled states, haptics, and persistence triggers."
+        },
+        {
+          "component": "CalculatorView",
+          "responsibility": "Renders display, keypad, history sheet, settings, and accessibility metadata."
+        }
+      ]
+    }
+  ],
+  "epics": [
+    {
+      "id": "E1",
+      "title": "Project Foundation",
+      "summary": "Create the SwiftUI app skeleton, module boundaries, and basic test setup.",
+      "tags": ["foundation"],
+      "stories": [
+        {
+          "id": "E1.S1",
+          "title": "Create SwiftUI App Target",
+          "details": [
+            "Create a SwiftUI app target with a single main calculator scene.",
+            "Set the deployment target and app metadata.",
+            "Add separate folders or groups for engine, view model, views, persistence, and tests."
+          ],
+          "acceptanceCriteria": [
+            "The app launches to an empty calculator shell without runtime warnings.",
+            "The project has a clear separation between UI and calculation logic.",
+            "The test target can run at least one placeholder unit test."
+          ],
+          "unitTests": [
+            "Run the default unit test target successfully."
+          ],
+          "filesLikelyTouched": [
+            "CalculatorApp.swift",
+            "CalculatorView.swift"
+          ]
+        },
+        {
+          "id": "E1.S2",
+          "title": "Define Core Domain Types",
+          "details": [
+            "Define types for calculator buttons, operations, input events, display state, and calculation errors.",
+            "Keep the domain types independent from SwiftUI."
+          ],
+          "acceptanceCriteria": [
+            "Domain types compile without importing SwiftUI.",
+            "Every visible keypad button maps to a typed input event.",
+            "Errors have stable typed cases instead of display strings only."
+          ],
+          "unitTests": [
+            "Test that all button definitions map to valid input events."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "title": "Calculator Engine",
+      "summary": "Implement the arithmetic state machine and the core behavior expected from a basic calculator.",
+      "tags": ["engine", "test-heavy"],
+      "stories": [
+        {
+          "id": "E2.S1",
+          "title": "Implement Digit and Decimal Input",
+          "details": [
+            "Support appending digits to the current operand.",
+            "Support a single decimal separator per operand.",
+            "Support leading zero and replacement behavior after operations."
+          ],
+          "acceptanceCriteria": [
+            "Entering digits updates the current display predictably.",
+            "Entering multiple decimal separators does not corrupt the operand.",
+            "Starting a new operand after an operator replaces the display instead of appending."
+          ],
+          "unitTests": [
+            "Test multi-digit input.",
+            "Test decimal input rejects a second decimal separator.",
+            "Test new operand entry after selecting an operator."
+          ]
+        },
+        {
+          "id": "E2.S2",
+          "title": "Implement Binary Operators",
+          "details": [
+            "Support addition, subtraction, multiplication, and division.",
+            "Store pending operator state until equals or another operator is pressed.",
+            "Handle operator replacement when the user taps operators repeatedly."
+          ],
+          "acceptanceCriteria": [
+            "Basic binary operations produce correct results.",
+            "Repeated operator taps replace the pending operator.",
+            "Pressing an operator after entering a second operand evaluates the prior operation."
+          ],
+          "unitTests": [
+            "Test addition, subtraction, multiplication, and division.",
+            "Test chained operator behavior.",
+            "Test operator replacement behavior."
+          ],
+          "dependencies": ["E2.S1"]
+        },
+        {
+          "id": "E2.S3",
+          "title": "Implement Unary Operators",
+          "details": [
+            "Support sign toggle, percent, and clear-entry behavior.",
+            "Apply unary operations to the currently editable operand."
+          ],
+          "acceptanceCriteria": [
+            "Sign toggle flips positive and negative values.",
+            "Percent behavior is documented and consistent.",
+            "Clear-entry resets the current operand without losing unrelated persistent state."
+          ],
+          "unitTests": [
+            "Test sign toggle for positive, negative, and zero values.",
+            "Test percent behavior for standalone and pending-operation cases.",
+            "Test clear-entry behavior."
+          ],
+          "dependencies": ["E2.S1"]
+        },
+        {
+          "id": "E2.S4",
+          "title": "Implement Equals and Repeated Equals",
+          "details": [
+            "Evaluate the pending operation when equals is pressed.",
+            "Remember the last operation so repeated equals repeats the last calculation."
+          ],
+          "acceptanceCriteria": [
+            "Equals computes the displayed result.",
+            "Repeated equals applies the last operand and operator again.",
+            "Equals with no pending operation is harmless."
+          ],
+          "unitTests": [
+            "Test equals after a binary operation.",
+            "Test repeated equals for addition and multiplication.",
+            "Test equals with no pending operation."
+          ],
+          "dependencies": ["E2.S2"]
+        },
+        {
+          "id": "E2.S5",
+          "title": "Handle Numeric Errors",
+          "details": [
+            "Represent divide-by-zero, overflow, and invalid decimal states as typed errors.",
+            "Reset error state only when the user starts a clear or new valid calculation."
+          ],
+          "acceptanceCriteria": [
+            "Divide-by-zero shows an error state instead of crashing.",
+            "Overflow is detected before displaying misleading results.",
+            "After an error, clear returns the engine to a usable initial state."
+          ],
+          "unitTests": [
+            "Test divide-by-zero error state.",
+            "Test clear after error.",
+            "Test large-number overflow handling."
+          ],
+          "dependencies": ["E2.S2"]
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "title": "Display Formatting",
+      "summary": "Convert engine state into concise, readable display strings.",
+      "stories": [
+        {
+          "id": "E3.S1",
+          "title": "Format Standard Results",
+          "details": [
+            "Create a formatter for integers, decimals, negative values, and trailing zeros.",
+            "Keep formatter behavior deterministic across locales unless locale-specific display is explicitly enabled."
+          ],
+          "acceptanceCriteria": [
+            "Whole-number results do not show unnecessary decimal suffixes.",
+            "Decimal results are rounded to fit the display.",
+            "Negative values preserve the sign and remain readable."
+          ],
+          "unitTests": [
+            "Test integer formatting.",
+            "Test decimal rounding.",
+            "Test negative number formatting."
+          ],
+          "dependencies": ["E2.S1"]
+        },
+        {
+          "id": "E3.S2",
+          "title": "Format Scientific Notation",
+          "details": [
+            "Use scientific notation when values exceed display capacity.",
+            "Ensure very small non-zero values remain distinguishable from zero."
+          ],
+          "acceptanceCriteria": [
+            "Large values switch to scientific notation.",
+            "Small values do not silently round to zero when precision remains meaningful.",
+            "Scientific notation fits the display area."
+          ],
+          "unitTests": [
+            "Test large-value scientific notation.",
+            "Test small-value scientific notation.",
+            "Test display length constraints."
+          ],
+          "dependencies": ["E3.S1"]
+        },
+        {
+          "id": "E3.S3",
+          "title": "Format Error Messages",
+          "details": [
+            "Map typed engine errors to short user-facing display strings.",
+            "Keep raw error types available for tests and accessibility."
+          ],
+          "acceptanceCriteria": [
+            "Every engine error has a display string.",
+            "Error display strings fit in the calculator display.",
+            "Error state can be announced through accessibility labels."
+          ],
+          "unitTests": [
+            "Test every error case maps to a display string.",
+            "Test unknown errors cannot appear without a fallback."
+          ],
+          "dependencies": ["E2.S5"]
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "title": "SwiftUI Calculator Layout",
+      "summary": "Build the native visual surface: display, keypad grid, spacing, and adaptive layout.",
+      "tags": ["ui"],
+      "stories": [
+        {
+          "id": "E4.S1",
+          "title": "Build Display View",
+          "details": [
+            "Create a calculator display with right-aligned text, dynamic sizing, and safe truncation.",
+            "Support a secondary expression or status line when useful."
+          ],
+          "acceptanceCriteria": [
+            "Display text never overlaps the keypad.",
+            "Long values shrink or switch format rather than clipping awkwardly.",
+            "The display supports light and dark mode."
+          ],
+          "unitTests": [
+            "Add a preview or snapshot-style manual check for short, long, and error displays."
+          ],
+          "dependencies": ["E3.S1"]
+        },
+        {
+          "id": "E4.S2",
+          "title": "Build Keypad Grid",
+          "details": [
+            "Create reusable calculator button views.",
+            "Lay out digits, operators, clear, sign, percent, decimal, and equals in a stable grid.",
+            "Make the zero button span the expected width if matching iOS calculator conventions."
+          ],
+          "acceptanceCriteria": [
+            "All buttons have stable dimensions.",
+            "The keypad remains usable on compact iPhone screens.",
+            "Operator buttons are visually distinct from number buttons."
+          ],
+          "unitTests": [
+            "Add SwiftUI previews for compact and regular size classes."
+          ],
+          "dependencies": ["E1.S2"]
+        },
+        {
+          "id": "E4.S3",
+          "title": "Support Orientation and iPad Layout",
+          "details": [
+            "Adapt spacing, display height, and button sizes for portrait, landscape, and iPad.",
+            "Avoid hardcoded dimensions that break on split view."
+          ],
+          "acceptanceCriteria": [
+            "Portrait iPhone layout fits without scrolling.",
+            "Landscape layout remains usable.",
+            "iPad layout uses available space without oversized text."
+          ],
+          "unitTests": [
+            "Manual smoke test previews for iPhone portrait, iPhone landscape, and iPad."
+          ],
+          "dependencies": ["E4.S1", "E4.S2"]
+        },
+        {
+          "id": "E4.S4",
+          "title": "Add Theme Styling",
+          "details": [
+            "Define color roles for display, numeric buttons, operator buttons, utility buttons, and background.",
+            "Support system light and dark appearances."
+          ],
+          "acceptanceCriteria": [
+            "Colors meet readable contrast in light and dark mode.",
+            "Button pressed states are visible.",
+            "Theme values are centralized rather than scattered through views."
+          ],
+          "unitTests": [
+            "Manual preview check for light mode, dark mode, and high contrast."
+          ],
+          "dependencies": ["E4.S2"]
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "title": "View Model and Input Binding",
+      "summary": "Connect SwiftUI controls to the engine through a small observable view model.",
+      "stories": [
+        {
+          "id": "E5.S1",
+          "title": "Create Calculator View Model",
+          "details": [
+            "Create an observable view model that owns a CalculatorEngine instance.",
+            "Expose display text, secondary text, button state, and input dispatch methods."
+          ],
+          "acceptanceCriteria": [
+            "Views do not mutate the engine directly.",
+            "View model updates published state after every input.",
+            "Display state is derived from engine state and formatter behavior."
+          ],
+          "unitTests": [
+            "Test digit input updates display text.",
+            "Test operator input updates secondary state if shown.",
+            "Test clear resets published display state."
+          ],
+          "dependencies": ["E2.S4", "E3.S1"]
+        },
+        {
+          "id": "E5.S2",
+          "title": "Wire Buttons to Input Events",
+          "details": [
+            "Connect every keypad button to a typed input event.",
+            "Add haptic feedback for successful button taps."
+          ],
+          "acceptanceCriteria": [
+            "Every visible button performs the correct engine action.",
+            "Disabled or invalid states do not send inconsistent input.",
+            "Haptics do not fire for ignored actions when disabled."
+          ],
+          "unitTests": [
+            "Test button definitions cover all input events.",
+            "Manual smoke test every keypad button."
+          ],
+          "dependencies": ["E4.S2", "E5.S1"]
+        },
+        {
+          "id": "E5.S3",
+          "title": "Add Keyboard Input for iPad",
+          "details": [
+            "Support hardware keyboard digits, decimal, operators, enter, delete, and escape.",
+            "Route keyboard input through the same view model dispatch path as button taps."
+          ],
+          "acceptanceCriteria": [
+            "Hardware keyboard input works when the calculator scene is active.",
+            "Keyboard and touch input produce identical engine behavior.",
+            "Unsupported keys are ignored safely."
+          ],
+          "unitTests": [
+            "Test keyboard event mapping to calculator input events.",
+            "Manual smoke test on iPad simulator with hardware keyboard input."
+          ],
+          "dependencies": ["E5.S2"]
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "title": "Memory Functions",
+      "summary": "Add calculator memory controls and tested memory state transitions.",
+      "stories": [
+        {
+          "id": "E6.S1",
+          "title": "Implement Memory State in Engine",
+          "details": [
+            "Support memory clear, memory recall, memory add, and memory subtract.",
+            "Represent empty memory distinctly from zero if the UI needs to show memory availability."
+          ],
+          "acceptanceCriteria": [
+            "Memory add and subtract update stored memory based on the current display value.",
+            "Memory recall enters the stored value as the current operand.",
+            "Memory clear removes stored memory state."
+          ],
+          "unitTests": [
+            "Test memory add.",
+            "Test memory subtract.",
+            "Test memory recall.",
+            "Test memory clear."
+          ],
+          "dependencies": ["E2.S1"]
+        },
+        {
+          "id": "E6.S2",
+          "title": "Add Memory Buttons to UI",
+          "details": [
+            "Add memory controls in a compact row or adaptive menu depending on available screen size.",
+            "Show memory availability without cluttering the main keypad."
+          ],
+          "acceptanceCriteria": [
+            "Memory controls are reachable on compact iPhone screens.",
+            "Memory controls remain visible or discoverable on iPad.",
+            "Memory unavailable state is visually clear when appropriate."
+          ],
+          "unitTests": [
+            "Manual preview check for compact and regular layouts.",
+            "Manual smoke test memory controls through the UI."
+          ],
+          "dependencies": ["E6.S1", "E5.S2"]
+        }
+      ]
+    },
+    {
+      "id": "E7",
+      "title": "History",
+      "summary": "Record recent calculations and expose a simple history view.",
+      "stories": [
+        {
+          "id": "E7.S1",
+          "title": "Capture Calculation History Entries",
+          "details": [
+            "Record completed calculations with expression text, result text, timestamp, and error state if relevant.",
+            "Avoid recording partial input sequences."
+          ],
+          "acceptanceCriteria": [
+            "A history entry is created after a completed equals operation.",
+            "Partial calculations are not added to history.",
+            "Error results can be recorded or excluded according to a documented policy."
+          ],
+          "unitTests": [
+            "Test history entry after equals.",
+            "Test no history entry for partial input.",
+            "Test history behavior for error results."
+          ],
+          "dependencies": ["E2.S4", "E3.S1"]
+        },
+        {
+          "id": "E7.S2",
+          "title": "Build History Sheet",
+          "details": [
+            "Create a SwiftUI sheet or panel showing recent calculations.",
+            "Allow tapping a result to reuse it as the current operand."
+          ],
+          "acceptanceCriteria": [
+            "History opens and closes without losing calculator state.",
+            "History rows show expression and result clearly.",
+            "Tapping a result loads it into the calculator through the view model."
+          ],
+          "unitTests": [
+            "Manual smoke test opening history, selecting a row, and continuing calculation."
+          ],
+          "dependencies": ["E7.S1", "E5.S1"]
+        },
+        {
+          "id": "E7.S3",
+          "title": "Clear History",
+          "details": [
+            "Add an explicit clear history action with a confirmation step.",
+            "Ensure clearing history does not clear the active calculator state."
+          ],
+          "acceptanceCriteria": [
+            "Clear history removes all history entries.",
+            "The current display remains unchanged after clearing history.",
+            "The destructive action is confirmable."
+          ],
+          "unitTests": [
+            "Test clear history removes entries.",
+            "Test clear history preserves current display state."
+          ],
+          "dependencies": ["E7.S2"]
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "title": "Persistence and App Lifecycle",
+      "summary": "Persist lightweight state and restore the calculator when the app relaunches.",
+      "stories": [
+        {
+          "id": "E8.S1",
+          "title": "Persist Calculator State",
+          "details": [
+            "Persist current display, pending operation, memory state, and recent history using a lightweight local store.",
+            "Version the persisted payload so future changes can migrate safely."
+          ],
+          "acceptanceCriteria": [
+            "Relaunch restores the last meaningful calculator state.",
+            "Invalid persisted data falls back to a clean initial state.",
+            "Persistence does not block the main thread during ordinary input."
+          ],
+          "unitTests": [
+            "Test encode and decode of calculator state.",
+            "Test invalid persisted payload fallback.",
+            "Test missing version fallback."
+          ],
+          "dependencies": ["E5.S1", "E7.S1"]
+        },
+        {
+          "id": "E8.S2",
+          "title": "Handle Scene Phase Changes",
+          "details": [
+            "Save state when the app moves to background or becomes inactive.",
+            "Restore state on launch before the first calculator view is rendered."
+          ],
+          "acceptanceCriteria": [
+            "Backgrounding and reopening preserves state.",
+            "Fresh install starts from a clean zero state.",
+            "State restoration failures are non-fatal."
+          ],
+          "unitTests": [
+            "Manual smoke test background and relaunch behavior.",
+            "Test persistence service save and restore paths."
+          ],
+          "dependencies": ["E8.S1"]
+        }
+      ]
+    },
+    {
+      "id": "E9",
+      "title": "Accessibility and Localization",
+      "summary": "Make the calculator usable with VoiceOver, Dynamic Type, and localized display conventions.",
+      "stories": [
+        {
+          "id": "E9.S1",
+          "title": "Add Accessibility Labels",
+          "details": [
+            "Add explicit accessibility labels and values for display, buttons, memory state, and history rows.",
+            "Ensure symbols such as plus, minus, multiply, divide, and equals are announced clearly."
+          ],
+          "acceptanceCriteria": [
+            "Every tappable control has a meaningful accessibility label.",
+            "The display announces the current value or error state.",
+            "VoiceOver order follows the visual calculator flow."
+          ],
+          "unitTests": [
+            "Manual VoiceOver smoke test for entering and evaluating a calculation."
+          ],
+          "dependencies": ["E4.S2", "E5.S2"]
+        },
+        {
+          "id": "E9.S2",
+          "title": "Support Dynamic Type",
+          "details": [
+            "Make display and keypad text adapt to larger content sizes without overlap.",
+            "Set sensible minimum scale factors for calculator display text."
+          ],
+          "acceptanceCriteria": [
+            "Large accessibility text sizes remain usable.",
+            "Button labels do not overlap or escape their bounds.",
+            "The display remains readable with long values."
+          ],
+          "unitTests": [
+            "Manual preview check with accessibility text sizes."
+          ],
+          "dependencies": ["E4.S1", "E4.S2"]
+        },
+        {
+          "id": "E9.S3",
+          "title": "Prepare Localized Number Display",
+          "details": [
+            "Decide whether decimal separator and grouping should follow locale.",
+            "Keep parsing and display behavior consistent if localized separators are enabled."
+          ],
+          "acceptanceCriteria": [
+            "Locale behavior is documented.",
+            "Decimal input remains valid for the chosen locale policy.",
+            "Tests cover at least one non-US decimal separator scenario if localization is enabled."
+          ],
+          "unitTests": [
+            "Test formatter behavior under a locale with comma decimal separators if supported."
+          ],
+          "dependencies": ["E3.S1"]
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "title": "Quality, Release, and Polish",
+      "summary": "Finish verification, app polish, and release readiness.",
+      "stories": [
+        {
+          "id": "E10.S1",
+          "title": "Add End-to-End Smoke Tests",
+          "details": [
+            "Create a small suite of UI or manual smoke tests for the most common calculator flows.",
+            "Cover fresh launch, basic arithmetic, errors, memory, history, and state restore."
+          ],
+          "acceptanceCriteria": [
+            "Smoke test checklist covers all core user-visible features.",
+            "At least one automated UI test or documented manual test path exercises a full calculation.",
+            "Release cannot be considered complete until the smoke checklist passes."
+          ],
+          "unitTests": [
+            "Run unit tests for engine, formatter, view model, memory, history, and persistence.",
+            "Run UI smoke test or manual release checklist."
+          ],
+          "dependencies": ["E8.S2", "E9.S1"]
+        },
+        {
+          "id": "E10.S2",
+          "title": "Add App Icon and Launch Polish",
+          "details": [
+            "Add app icon assets.",
+            "Confirm launch screen appearance is clean in light and dark mode."
+          ],
+          "acceptanceCriteria": [
+            "App icon appears correctly on simulator home screen.",
+            "Launch does not flash an inconsistent background.",
+            "Asset catalog has no missing required icon warnings."
+          ],
+          "unitTests": [
+            "Manual launch and home screen check on simulator."
+          ]
+        },
+        {
+          "id": "E10.S3",
+          "title": "Prepare Release Build",
+          "details": [
+            "Create a release scheme or verify the default release configuration.",
+            "Run archive build and inspect warnings.",
+            "Document final verification commands and manual checks."
+          ],
+          "acceptanceCriteria": [
+            "Release build succeeds without unexpected warnings.",
+            "Archive can be produced locally.",
+            "README or release notes include how to build and test the app."
+          ],
+          "unitTests": [
+            "Run full unit test suite.",
+            "Run archive build."
+          ],
+          "dependencies": ["E10.S1", "E10.S2"]
+        }
+      ]
+    }
+  ],
+  "workflows": [
+    {
+      "id": "validation-order",
+      "title": "Validation Order",
+      "kind": "validation",
+      "steps": [
+        "Run engine and formatter unit tests first.",
+        "Run view model tests after input binding changes.",
+        "Run SwiftUI previews or simulator smoke checks for layout changes.",
+        "Run persistence and lifecycle tests after history and memory are connected.",
+        "Run accessibility, localization, and release smoke checks last."
+      ]
+    }
+  ],
+  "commands": [
+    {
+      "title": "Run Unit Tests",
+      "command": "xcodebuild test -scheme Calculator -destination 'platform=iOS Simulator,name=iPhone 15'",
+      "expectedResults": [
+        "All unit tests pass."
+      ]
+    },
+    {
+      "title": "Build Release Archive",
+      "command": "xcodebuild archive -scheme Calculator -destination 'generic/platform=iOS'",
+      "expectedResults": [
+        "Archive build completes without unexpected warnings."
+      ]
+    }
+  ],
+  "recommendedOrder": [
+    {
+      "ref": "E1.S1",
+      "reason": "The project target and test target must exist before any implementation work can be integrated."
+    },
+    {
+      "ref": "E1.S2",
+      "reason": "Typed input and operation definitions keep the engine and UI aligned."
+    },
+    {
+      "ref": "E2.S1",
+      "reason": "Digit and decimal input are the root behavior for all calculator operations."
+    },
+    {
+      "ref": "E2.S2",
+      "reason": "Binary operators unlock the first useful calculation path."
+    },
+    {
+      "ref": "E2.S4",
+      "reason": "Equals behavior completes the basic arithmetic loop."
+    },
+    {
+      "ref": "E3.S1",
+      "reason": "Display formatting is needed before the UI can show stable values."
+    },
+    {
+      "ref": "E4.S1",
+      "reason": "The display view is the first visible UI dependency."
+    },
+    {
+      "ref": "E4.S2",
+      "reason": "The keypad provides the primary input surface."
+    },
+    {
+      "ref": "E5.S1",
+      "reason": "The view model connects the tested engine to SwiftUI without leaking UI concerns into the engine."
+    },
+    {
+      "ref": "E5.S2",
+      "reason": "Button wiring creates the first fully usable app slice."
+    },
+    {
+      "ref": "E2.S3",
+      "reason": "Unary operations can be added once the main input loop is stable."
+    },
+    {
+      "ref": "E2.S5",
+      "reason": "Error handling should be added before release-facing polish."
+    },
+    {
+      "ref": "E6.S1",
+      "reason": "Memory behavior is engine state and should be tested before UI controls are added."
+    },
+    {
+      "ref": "E7.S1",
+      "reason": "History capture depends on completed calculation events."
+    },
+    {
+      "ref": "E8.S1",
+      "reason": "Persistence should be added after the state model includes calculator, memory, and history data."
+    },
+    {
+      "ref": "E9.S1",
+      "reason": "Accessibility should be verified once the main controls and flows exist."
+    },
+    {
+      "ref": "E10.S1",
+      "reason": "End-to-end smoke testing should validate the assembled feature set."
+    },
+    {
+      "ref": "E10.S3",
+      "reason": "Release build verification should happen after core quality gates pass."
+    }
+  ],
+  "exitCriteria": [
+    "The app launches to a functional SwiftUI calculator on supported iOS simulators.",
+    "Basic arithmetic, unary operations, repeated equals, memory, history, and clear behavior work through the UI.",
+    "Engine, formatter, view model, memory, history, and persistence behavior are covered by tests or explicit smoke checks.",
+    "The calculator remains usable in portrait, landscape, light mode, dark mode, larger text sizes, and VoiceOver smoke testing.",
+    "A release archive build completes successfully."
+  ]
+}

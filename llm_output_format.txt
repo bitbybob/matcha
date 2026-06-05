@@ -1,0 +1,151 @@
+Output exactly one JSON object and nothing else.
+
+The JSON object must follow this compact plan format:
+
+{
+  "schemaVersion": 1,
+  "id": "short-stable-slug",
+  "title": "Plan title",
+  "project": "project-name",
+  "status": "planned",
+  "summary": [
+    "One to three short paragraphs explaining the plan's objective, current context, and main approach."
+  ],
+  "epics": [
+    {
+      "id": "E1",
+      "title": "Epic title",
+      "summary": "What this epic delivers.",
+      "stories": [
+        {
+          "id": "E1.S1",
+          "title": "Story title",
+          "details": [
+            "Concrete implementation work to perform."
+          ],
+          "acceptanceCriteria": [
+            "Observable condition that proves this story is done."
+          ],
+          "unitTests": [
+            "Specific unit, integration, smoke, or manual test to add or run."
+          ]
+        }
+      ]
+    }
+  ],
+  "recommendedOrder": [
+    {
+      "ref": "E1.S1",
+      "reason": "Why this should be done at this point in the sequence."
+    }
+  ],
+  "exitCriteria": [
+    "Plan-level condition that proves the whole plan is complete."
+  ]
+}
+
+Rules:
+- Return valid JSON only. Do not wrap it in Markdown. Do not add commentary.
+- Use double quotes for all strings and keys.
+- Use stable IDs:
+  - Plan id: lowercase slug, such as "build-orchestrator".
+  - Epic ids: "E1", "E2", "E3".
+  - Story ids: "E1.S1", "E1.S2", "E2.S1".
+- Use "planned" as the default status unless the prompt clearly indicates another status.
+- Make epics independently useful delivery areas.
+- Make stories concrete enough that an implementer can start work without rereading the original discussion.
+- Acceptance criteria must be observable, not vague.
+- Unit tests should name the behavior being tested. If testing is not applicable, include a manual or smoke test instead.
+- recommendedOrder should reference story IDs, not epic IDs, unless the plan truly only has epic-level sequencing.
+- exitCriteria should describe the final proof that the entire plan succeeded.
+
+Optional fields may be included when useful:
+
+Top-level optional fields:
+- "generatedAt": ISO-8601 date-time string.
+- "scope": short text describing the plan scope.
+- "metadata": object with extra context.
+- "sections": typed non-story content such as architecture notes, rules, data models, tables, or requirements.
+- "workflows": ordered validation, migration, smoke-test, or rollout steps.
+- "commands": commands to run.
+- "blockers": known blocking fixes.
+
+Epic optional fields:
+- "tags": array of short strings.
+- "testFocus": short string.
+- "dependencies": array of referenced epic or story IDs.
+
+Story optional fields:
+- "tags": array of short strings.
+- "dependencies": array of referenced story IDs.
+- "priority": positive integer.
+- "risk": one of "low", "medium", "high", "critical".
+- "filesLikelyTouched": array of paths or module names.
+- "commandsToRun": array of commands.
+- "artifacts": array of produced artifacts.
+- "notes": array of short notes.
+
+Use this shape for optional sections:
+
+{
+  "id": "design-rules",
+  "title": "Design Rules",
+  "kind": "rules",
+  "items": [
+    {
+      "title": "Rule name",
+      "text": "Rule explanation."
+    }
+  ]
+}
+
+Allowed section kinds:
+- "prose"
+- "table"
+- "rules"
+- "checklist"
+- "ordered-steps"
+- "architecture"
+- "data-model"
+- "requirements"
+- "notes"
+
+Use this shape for optional workflows:
+
+{
+  "id": "validation-order",
+  "title": "Validation Order",
+  "kind": "validation",
+  "steps": [
+    "Run the fastest local verification first.",
+    "Run the end-to-end smoke test.",
+    "Run the real production-like validation last."
+  ]
+}
+
+Allowed workflow kinds:
+- "ordered-steps"
+- "checklist"
+- "validation"
+- "smoke-test"
+- "migration"
+
+Use this shape for optional commands:
+
+{
+  "title": "Run tests",
+  "command": "task test",
+  "expectedResults": [
+    "All tests pass."
+  ]
+}
+
+Use this shape for optional blockers:
+
+{
+  "priority": 1,
+  "area": "Compilation",
+  "requiredFix": "Fix the compile error before running integration tests."
+}
+
+Prefer concise, dense plans. Avoid filler. Do not invent exact file paths, commands, APIs, or dates unless they were provided or are obvious from context.

@@ -1,0 +1,447 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/plan.schema.json",
+  "title": "Plan",
+  "description": "Canonical structured plan format for epic/story implementation plans, operational plans, validation flows, and architecture breakdowns.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "title"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "id": {
+      "$ref": "#/$defs/slug"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "$ref": "#/$defs/status"
+    },
+    "summary": {
+      "$ref": "#/$defs/stringList"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/jsonValue"
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/section"
+      }
+    },
+    "epics": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/epic"
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workflow"
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/command"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker"
+      }
+    },
+    "exitCriteria": {
+      "$ref": "#/$defs/stringList"
+    },
+    "recommendedOrder": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/recommendedOrderItem"
+      }
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]*$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "planned",
+        "ready",
+        "in-progress",
+        "blocked",
+        "complete",
+        "archived"
+      ]
+    },
+    "jsonValue": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      ]
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "refList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/slug"
+      }
+    },
+    "section": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "kind"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "prose",
+            "table",
+            "rules",
+            "checklist",
+            "ordered-steps",
+            "architecture",
+            "data-model",
+            "requirements",
+            "notes"
+          ]
+        },
+        "summary": {
+          "$ref": "#/$defs/stringList"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/sectionItem"
+          }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/jsonValue"
+            }
+          }
+        },
+        "columns": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "sectionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tags": {
+          "$ref": "#/$defs/stringList"
+        },
+        "ref": {
+          "$ref": "#/$defs/slug"
+        }
+      }
+    },
+    "epic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "stories"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tags": {
+          "$ref": "#/$defs/stringList"
+        },
+        "testFocus": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "dependencies": {
+          "$ref": "#/$defs/refList"
+        },
+        "stories": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/story"
+          }
+        }
+      }
+    },
+    "story": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "details": {
+          "$ref": "#/$defs/stringList"
+        },
+        "acceptanceCriteria": {
+          "$ref": "#/$defs/stringList"
+        },
+        "unitTests": {
+          "$ref": "#/$defs/stringList"
+        },
+        "dependencies": {
+          "$ref": "#/$defs/refList"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "tags": {
+          "$ref": "#/$defs/stringList"
+        },
+        "priority": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "risk": {
+          "type": "string",
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "owner": {
+          "type": ["string", "null"]
+        },
+        "estimate": {
+          "type": ["string", "number", "null"]
+        },
+        "filesLikelyTouched": {
+          "$ref": "#/$defs/stringList"
+        },
+        "commandsToRun": {
+          "$ref": "#/$defs/stringList"
+        },
+        "artifacts": {
+          "$ref": "#/$defs/stringList"
+        },
+        "notes": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "kind", "steps"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["ordered-steps", "checklist", "validation", "smoke-test", "migration"]
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "$ref": "#/$defs/workflowStep"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "workflowStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["text"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedResults": {
+          "$ref": "#/$defs/stringList"
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "refs": {
+          "$ref": "#/$defs/refList"
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "command"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workingDirectory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "environment": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "expectedResults": {
+          "$ref": "#/$defs/stringList"
+        },
+        "refs": {
+          "$ref": "#/$defs/refList"
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["priority", "area", "requiredFix"],
+      "properties": {
+        "priority": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "area": {
+          "type": "string",
+          "minLength": 1
+        },
+        "requiredFix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "$ref": "#/$defs/status"
+        },
+        "refs": {
+          "$ref": "#/$defs/refList"
+        }
+      }
+    },
+    "recommendedOrderItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref"],
+      "properties": {
+        "ref": {
+          "$ref": "#/$defs/slug"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

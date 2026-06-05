@@ -31,9 +31,9 @@ tasks:
       - deno test
 
   run:
-    desc: Run the CLI locally
+    desc: Run the CLI
     cmds:
-      - deno run src/main.ts {{.CLI_ARGS}}
+      - deno run --allow-read --allow-write src/main.ts {{.CLI_ARGS}}
 
   build:
     desc: Compile the CLI into an executable
