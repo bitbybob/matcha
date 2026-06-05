@@ -1,0 +1,18 @@
+:root[data-theme="solarized"] {
+  --bob-accent: #268bd2;
+  --bob-panel-bg: #002b36;
+  --bob-surface0: #073642;
+  --bob-surface1: #586e75;
+  --bob-surface-dim: #002b36;
+  --bob-overlay0: #586e75;
+  --bob-overlay1: #657b83;
+  --bob-text: #93a1a1;
+  --bob-subtext0: #839496;
+  --bob-mauve: #d33682;
+  --bob-green: #859900;
+  --bob-yellow: #b58900;
+  --bob-red: #dc322f;
+  --bob-blue: #268bd2;
+  --bob-teal: #2aa198;
+  --bob-peach: #cb4b16;
+}

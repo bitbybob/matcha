@@ -1,0 +1,18 @@
+:root[data-theme="catppuccin"] {
+  --bob-accent: #89b4fa;
+  --bob-panel-bg: #181825;
+  --bob-surface0: #313244;
+  --bob-surface1: #45475a;
+  --bob-surface-dim: #1e1e2e;
+  --bob-overlay0: #6c7086;
+  --bob-overlay1: #7f849c;
+  --bob-text: #cdd6f4;
+  --bob-subtext0: #a6adc8;
+  --bob-mauve: #cba6f7;
+  --bob-green: #a6e3a1;
+  --bob-yellow: #f9e2af;
+  --bob-red: #f38ba8;
+  --bob-blue: #89b4fa;
+  --bob-teal: #94e2d5;
+  --bob-peach: #fab387;
+}

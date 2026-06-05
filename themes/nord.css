@@ -1,0 +1,18 @@
+:root[data-theme="nord"] {
+  --bob-accent: #88c0d0;
+  --bob-panel-bg: #2e3440;
+  --bob-surface0: #3b4252;
+  --bob-surface1: #434c5e;
+  --bob-surface-dim: #2e3440;
+  --bob-overlay0: #4c566a;
+  --bob-overlay1: #646e82;
+  --bob-text: #eceff4;
+  --bob-subtext0: #d8dee9;
+  --bob-mauve: #b48ead;
+  --bob-green: #a3be8c;
+  --bob-yellow: #ebcb8b;
+  --bob-red: #bf616a;
+  --bob-blue: #81a1c1;
+  --bob-teal: #8fbcbb;
+  --bob-peach: #d08770;
+}

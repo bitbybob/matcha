@@ -1,0 +1,18 @@
+:root[data-theme="kanagawa"] {
+  --bob-accent: #7e9cd8;
+  --bob-panel-bg: #1f1f28;
+  --bob-surface0: #2a2a37;
+  --bob-surface1: #363646;
+  --bob-surface-dim: #1f1f28;
+  --bob-overlay0: #727169;
+  --bob-overlay1: #87867d;
+  --bob-text: #dcd7ba;
+  --bob-subtext0: #c8c3aa;
+  --bob-mauve: #957fb8;
+  --bob-green: #76946a;
+  --bob-yellow: #c0a36e;
+  --bob-red: #c34043;
+  --bob-blue: #7e9cd8;
+  --bob-teal: #7fb4ca;
+  --bob-peach: #ffa066;
+}

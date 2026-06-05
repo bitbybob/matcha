@@ -1,0 +1,18 @@
+:root[data-theme="tokyo-night-day"] {
+  --bob-accent: #2e7de9;
+  --bob-panel-bg: #e1e2e7;
+  --bob-surface0: #c4c8da;
+  --bob-surface1: #a8aecb;
+  --bob-surface-dim: #d2d3da;
+  --bob-overlay0: #8990b3;
+  --bob-overlay1: #68709a;
+  --bob-text: #3760bf;
+  --bob-subtext0: #6172b0;
+  --bob-mauve: #7847bd;
+  --bob-green: #587539;
+  --bob-yellow: #8c6c3e;
+  --bob-red: #f52a65;
+  --bob-blue: #2e7de9;
+  --bob-teal: #118c74;
+  --bob-peach: #b15c00;
+}

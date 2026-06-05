@@ -1,0 +1,18 @@
+:root[data-theme="rose-pine-dawn"] {
+  --bob-accent: #907aa9;
+  --bob-panel-bg: #faf4ed;
+  --bob-surface0: #f2e9e1;
+  --bob-surface1: #fffaf3;
+  --bob-surface-dim: #f2e9e1;
+  --bob-overlay0: #9893a5;
+  --bob-overlay1: #797593;
+  --bob-text: #464261;
+  --bob-subtext0: #797593;
+  --bob-mauve: #907aa9;
+  --bob-green: #286983;
+  --bob-yellow: #ea9d34;
+  --bob-red: #b4637a;
+  --bob-blue: #286983;
+  --bob-teal: #56949f;
+  --bob-peach: #d7827e;
+}

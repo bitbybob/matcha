@@ -1,0 +1,18 @@
+:root[data-theme="kanagawa-lotus"] {
+  --bob-accent: #4d699b;
+  --bob-panel-bg: #f2ecbc;
+  --bob-surface0: #dcd5ac;
+  --bob-surface1: #c9cbd1;
+  --bob-surface-dim: #d5cea3;
+  --bob-overlay0: #a09cac;
+  --bob-overlay1: #8a8980;
+  --bob-text: #545464;
+  --bob-subtext0: #43436c;
+  --bob-mauve: #624c83;
+  --bob-green: #6f894e;
+  --bob-yellow: #77713f;
+  --bob-red: #c84053;
+  --bob-blue: #4d699b;
+  --bob-teal: #4e8ca2;
+  --bob-peach: #cc6d00;
+}

@@ -1,0 +1,18 @@
+:root[data-theme="terminal"] {
+  --bob-accent: blue;
+  --bob-panel-bg: initial;
+  --bob-surface0: initial;
+  --bob-surface1: darkgray;
+  --bob-surface-dim: darkgray;
+  --bob-overlay0: gray;
+  --bob-overlay1: white;
+  --bob-text: initial;
+  --bob-subtext0: gray;
+  --bob-mauve: gray;
+  --bob-green: green;
+  --bob-yellow: yellow;
+  --bob-red: #ff5555;
+  --bob-blue: blue;
+  --bob-teal: cyan;
+  --bob-peach: yellow;
+}

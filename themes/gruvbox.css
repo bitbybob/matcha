@@ -1,0 +1,18 @@
+:root[data-theme="gruvbox"] {
+  --bob-accent: #d79921;
+  --bob-panel-bg: #282828;
+  --bob-surface0: #3c3836;
+  --bob-surface1: #504945;
+  --bob-surface-dim: #282828;
+  --bob-overlay0: #928374;
+  --bob-overlay1: #a89984;
+  --bob-text: #ebdbb2;
+  --bob-subtext0: #d5c4a1;
+  --bob-mauve: #d3869b;
+  --bob-green: #b8bb26;
+  --bob-yellow: #fabd2f;
+  --bob-red: #fb4934;
+  --bob-blue: #83a598;
+  --bob-teal: #8ec07c;
+  --bob-peach: #fe8019;
+}
