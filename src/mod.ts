@@ -13,13 +13,6 @@ export function runCli(args: string[]): void {
     return
   }
 
-  for (let i = 0; i < args.length; i += 1) {
-    // TODO extract themes & specified json
-    console.log(args[i])
-  }
-
-  console.log("bob cli")
-
   if (command === "plan") {
     plan()
   } else if (command === "map") {
@@ -68,7 +61,25 @@ function plan(): void {
 }
 
 function map() {
-  console.log("TODO: map")
+  const title = "UML Map"
+  const html = `<!DOCTYPE html>
+<html lang="en">
+${createMapHtmlHead(title)}
+<body>
+  <main class="map-shell">
+    <section class="map-placeholder" aria-label="UML diagram placeholder">
+      <p class="eyebrow">bob map</p>
+      <h1>UML Diagram Placeholder</h1>
+      <p class="summary">The JointJS renderer will mount here once the UML JSON format is wired in.</p>
+    </section>
+  </main>
+</body>
+</html>
+`
+
+  Deno.mkdirSync("dist", { recursive: true })
+  Deno.writeTextFileSync("dist/map.html", html)
+  console.log("Wrote dist/map.html")
 }
 
 function createHtmlHead(title: string, planCss: string, themeCss: string): string {
@@ -80,6 +91,82 @@ function createHtmlHead(title: string, planCss: string, themeCss: string): strin
         <style>${planCss}</style>
     </head>
     `
+}
+
+function createMapHtmlHead(title: string): string {
+  return `
+  <head>
+    <title>${title}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b1220;
+        --panel: #111827;
+        --border: #334155;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .map-shell {
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        place-items: center;
+        background-image:
+          radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.18) 1px, transparent 0);
+        background-size: 24px 24px;
+      }
+
+      .map-placeholder {
+        width: min(520px, calc(100vw - 40px));
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: rgba(17, 24, 39, 0.92);
+        padding: 28px;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.15;
+      }
+
+      .summary {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  `
 }
 
 function printHelp(): void {

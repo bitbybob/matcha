@@ -39,6 +39,11 @@ tasks:
     cmds:
       - deno run --allow-read --allow-write src/main.ts plan
 
+  run-map:
+    desc: Run sample map
+    cmds:
+      - deno run --allow-read --allow-write src/main.ts map
+
   build-client:
     desc: Build the self-contained Svelte plan.js bundle
     dir: client
