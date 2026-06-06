@@ -62,17 +62,39 @@ function plan(): void {
 
 function map() {
   const title = "UML Map"
+  const mapJs = readOptionalTextFile("map.js")
+  const diagram = {
+    schemaVersion: 1,
+    id: "placeholder-map",
+    title: "UML Diagram Placeholder",
+    diagramKind: "class",
+    status: "draft",
+    summary: [
+      "Placeholder map document used until UML JSON input is wired into the CLI.",
+    ],
+    elements: [],
+    relationships: [],
+  }
   const html = `<!DOCTYPE html>
 <html lang="en">
 ${createMapHtmlHead(title)}
 <body>
-  <main class="map-shell">
+  <div id="map-root">
+    <main class="map-shell">
     <section class="map-placeholder" aria-label="UML diagram placeholder">
       <p class="eyebrow">bob map</p>
       <h1>UML Diagram Placeholder</h1>
       <p class="summary">The JointJS renderer will mount here once the UML JSON format is wired in.</p>
     </section>
   </main>
+  </div>
+  <script type="application/json" id="map-data">
+${JSON.stringify(diagram, null, 2)}
+  </script>
+  <script>
+    window.MAP_DATA = JSON.parse(document.getElementById("map-data").textContent);
+    ${mapJs ?? ""}
+  </script>
 </body>
 </html>
 `
@@ -80,6 +102,18 @@ ${createMapHtmlHead(title)}
   Deno.mkdirSync("dist", { recursive: true })
   Deno.writeTextFileSync("dist/map.html", html)
   console.log("Wrote dist/map.html")
+}
+
+function readOptionalTextFile(path: string): string | null {
+  try {
+    return Deno.readTextFileSync(path)
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      return null
+    }
+
+    throw error
+  }
 }
 
 function createHtmlHead(title: string, planCss: string, themeCss: string): string {

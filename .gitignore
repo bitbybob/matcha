@@ -14,3 +14,7 @@ dist/
 
 # Logs
 *.log
+
+
+plan.js
+map.js

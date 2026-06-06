@@ -45,7 +45,7 @@ tasks:
       - deno run --allow-read --allow-write src/main.ts map
 
   build-client:
-    desc: Build the self-contained Svelte plan.js bundle
+    desc: Build the self-contained Svelte client bundles
     dir: client
     cmds:
       - npm run build

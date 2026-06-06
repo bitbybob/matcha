@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build && cp dist/plan.js ../plan.js"
+    "build": "npm run build:plan && npm run build:map",
+    "build:plan": "vite build --mode plan && cp dist/plan.js ../plan.js",
+    "build:map": "vite build --mode map && cp dist/map.js ../map.js"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.1",

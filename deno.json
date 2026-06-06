@@ -8,13 +8,13 @@
     "build": "deno compile --output dist/bob src/main.ts"
   },
   "fmt": {
-    "exclude": ["client", "plan.js"],
+    "exclude": ["client", "plan.js", "map.js"],
     "lineWidth": 100,
     "semiColons": false,
     "singleQuote": false
   },
   "lint": {
-    "exclude": ["client", "plan.js"],
+    "exclude": ["client", "plan.js", "map.js"],
     "rules": {
       "tags": ["recommended"]
     }
