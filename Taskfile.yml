@@ -38,7 +38,13 @@ tasks:
     desc: Run sample plan
     cmds:
       - deno run --allow-read --allow-write src/main.ts plan
-      -
+
+  build-client:
+    desc: Build the self-contained Svelte plan.js bundle
+    dir: client
+    cmds:
+      - npm run build
+
   build:
     desc: Compile the CLI into an executable
     cmds:

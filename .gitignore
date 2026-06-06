@@ -4,6 +4,11 @@
 .deno/
 coverage/
 
+# Node/Svelte client
+node_modules/
+client/node_modules/
+client/dist/
+
 # Build output
 dist/
 

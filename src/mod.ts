@@ -14,21 +14,21 @@ export function runCli(args: string[]): void {
   }
 
   for (let i = 0; i < args.length; i += 1) {
-      // TODO extract themes & specified json
-    console.log(args[i]);
+    // TODO extract themes & specified json
+    console.log(args[i])
   }
 
-  console.log("bob cli");
+  console.log("bob cli")
 
   if (command === "plan") {
-    plan();
+    plan()
   } else if (command === "map") {
-    map();
+    map()
   } else {
-    printHelp();
-    console.log(); // add an empty line
-    console.error("Unknown command:", command);
-    Deno.exit(1);
+    printHelp()
+    console.log() // add an empty line
+    console.error("Unknown command:", command)
+    Deno.exit(1)
   }
 }
 
@@ -36,13 +36,15 @@ function plan(): void {
   // TODO read plan from cli
   const plan = JSON.parse(Deno.readTextFileSync("sample.json")) as Plan
 
-  const title = plan.title;
-  const planJs = Deno.readTextFileSync("plan.js");
-  const planCss = Deno.readTextFileSync("plan.css");
-  const themeCss = Deno.readTextFileSync("./themes/catppuccin-latte.css");
+  const title = plan.title
+  const planJs = Deno.readTextFileSync("plan.js")
+  const planCss = Deno.readTextFileSync("plan.css")
+
+  const theme = "catppuccin-latte"
+  const themeCss = Deno.readTextFileSync(`./themes/${theme}.css`)
 
   const html = `<!DOCTYPE html>
-  <html lang="en">
+  <html lang="en" data-theme="${theme}">
   ${createHtmlHead(title, planCss, themeCss)}
   <body>
     <aside id="sidebar"></aside>
@@ -53,13 +55,15 @@ function plan(): void {
     </script>
 
     <script>
-      const plan = JSON.parse(document.getElementById("plan-data").textContent)
+      window.PLAN_DATA = JSON.parse(document.getElementById("plan-data").textContent);
 
+      ;
       ${planJs}
     </script>
   </body>
   </html>
   `
+  Deno.mkdirSync("dist", { recursive: true })
   Deno.writeTextFileSync("dist/plan.html", html)
 }
 

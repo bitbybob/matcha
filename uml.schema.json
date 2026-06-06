@@ -1,0 +1,487 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/uml.schema.json",
+  "title": "UML Diagram",
+  "description": "Canonical structured UML diagram format for LLM-generated class, component, package, deployment, use-case, sequence, and mixed architecture diagrams.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "title", "diagramKind", "elements", "relationships"],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "id": {
+      "$ref": "#/$defs/slug"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1
+    },
+    "diagramKind": {
+      "type": "string",
+      "enum": ["class", "component", "package", "deployment", "use-case", "sequence", "mixed"]
+    },
+    "status": {
+      "$ref": "#/$defs/status"
+    },
+    "summary": {
+      "$ref": "#/$defs/stringList"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/jsonValue"
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/group"
+      }
+    },
+    "elements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/element"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "views": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/view"
+      }
+    },
+    "legend": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/legendItem"
+      }
+    },
+    "constraints": {
+      "$ref": "#/$defs/stringList"
+    }
+  },
+  "$defs": {
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "planned", "ready", "in-progress", "blocked", "complete", "archived"]
+    },
+    "jsonValue": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      ]
+    },
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "refList": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/slug"
+      }
+    },
+    "diagramKind": {
+      "type": "string",
+      "enum": ["class", "component", "package", "deployment", "use-case", "sequence", "mixed"]
+    },
+    "elementKind": {
+      "type": "string",
+      "enum": [
+        "class",
+        "abstract-class",
+        "interface",
+        "enum",
+        "type",
+        "component",
+        "module",
+        "package",
+        "actor",
+        "use-case",
+        "service",
+        "database",
+        "external-system",
+        "note"
+      ]
+    },
+    "relationshipKind": {
+      "type": "string",
+      "enum": [
+        "inheritance",
+        "realization",
+        "association",
+        "dependency",
+        "aggregation",
+        "composition",
+        "contains",
+        "uses",
+        "creates",
+        "calls",
+        "emits",
+        "subscribes",
+        "reads",
+        "writes"
+      ]
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["public", "private", "protected", "package"]
+    },
+    "element": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/elementKind"
+        },
+        "stereotype": {
+          "type": "string",
+          "minLength": 1
+        },
+        "namespace": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "responsibilities": {
+          "$ref": "#/$defs/stringList"
+        },
+        "attributes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member"
+          }
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/operation"
+          }
+        },
+        "literals": {
+          "$ref": "#/$defs/stringList"
+        },
+        "tags": {
+          "$ref": "#/$defs/stringList"
+        },
+        "group": {
+          "$ref": "#/$defs/slug"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      }
+    },
+    "member": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "visibility": {
+          "$ref": "#/$defs/visibility"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "default": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "static": {
+          "type": "boolean"
+        },
+        "abstract": {
+          "type": "boolean"
+        },
+        "readonly": {
+          "type": "boolean"
+        },
+        "derived": {
+          "type": "boolean"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "visibility": {
+          "$ref": "#/$defs/visibility"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/parameter"
+          }
+        },
+        "returns": {
+          "type": "string",
+          "minLength": 1
+        },
+        "static": {
+          "type": "boolean"
+        },
+        "abstract": {
+          "type": "boolean"
+        },
+        "async": {
+          "type": "boolean"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "default": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "kind"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "from": {
+          "$ref": "#/$defs/slug"
+        },
+        "to": {
+          "$ref": "#/$defs/slug"
+        },
+        "kind": {
+          "$ref": "#/$defs/relationshipKind"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromLabel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "toLabel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fromMultiplicity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "toMultiplicity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "navigability": {
+          "type": "string",
+          "enum": ["none", "source", "target", "both"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tags": {
+          "$ref": "#/$defs/stringList"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "kind"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["package", "layer", "bounded-context", "namespace", "folder", "feature"]
+        },
+        "elements": {
+          "$ref": "#/$defs/refList"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "layout": {
+          "$ref": "#/$defs/layout"
+        },
+        "include": {
+          "$ref": "#/$defs/refList"
+        },
+        "exclude": {
+          "$ref": "#/$defs/refList"
+        },
+        "focus": {
+          "$ref": "#/$defs/refList"
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "type": "string",
+          "enum": ["auto", "layered", "grid", "tree", "manual"]
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["TB", "BT", "LR", "RL"]
+        },
+        "rankBy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "groupBy": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "legendItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/slug"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "color": {
+          "type": "string",
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

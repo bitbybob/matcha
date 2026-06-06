@@ -1,0 +1,210 @@
+Output exactly one JSON object and nothing else.
+
+The JSON object must follow this compact UML diagram format:
+
+{
+  "schemaVersion": 1,
+  "id": "short-stable-slug",
+  "title": "Diagram title",
+  "project": "project-name",
+  "diagramKind": "class",
+  "status": "draft",
+  "summary": [
+    "One to three short paragraphs explaining what the diagram covers and the main design boundaries."
+  ],
+  "elements": [
+    {
+      "id": "Plan",
+      "name": "Plan",
+      "kind": "class",
+      "summary": "Canonical structured plan document.",
+      "attributes": [
+        {
+          "visibility": "public",
+          "name": "schemaVersion",
+          "type": "number",
+          "required": true
+        }
+      ],
+      "operations": [
+        {
+          "visibility": "public",
+          "name": "validate",
+          "returns": "ValidationResult"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "Plan-contains-Epic",
+      "from": "Plan",
+      "to": "Epic",
+      "kind": "composition",
+      "toMultiplicity": "0..*",
+      "label": "epics"
+    }
+  ]
+}
+
+Rules:
+- Return valid JSON only. Do not wrap it in Markdown. Do not add commentary.
+- Use double quotes for all strings and keys.
+- Keep the JSON semantic. Do not output JointJS cells, SVG, coordinates, colors, or marker paths unless explicitly requested.
+- Use stable IDs:
+  - Diagram id: lowercase slug, such as "plan-domain-model".
+  - Element ids: stable PascalCase, camelCase, file-like, or dotted names from the source domain, such as "Plan", "PlanSection", "client.App", or "src/plan.ts".
+  - Relationship ids: stable source-target labels, such as "Plan-contains-Epic".
+- Prefer fewer, higher-signal elements over dumping every helper or type.
+- Put implementation details in "summary", "responsibilities", "attributes", "operations", or "metadata"; do not encode them into labels.
+- Use "draft" as the default status unless the prompt clearly indicates another status.
+- Only include relationships whose direction and meaning are clear from the source material.
+
+Allowed diagramKind values:
+- "class"
+- "component"
+- "package"
+- "deployment"
+- "use-case"
+- "sequence"
+- "mixed"
+
+Allowed element kind values:
+- "class"
+- "abstract-class"
+- "interface"
+- "enum"
+- "type"
+- "component"
+- "module"
+- "package"
+- "actor"
+- "use-case"
+- "service"
+- "database"
+- "external-system"
+- "note"
+
+Allowed relationship kind values:
+- "inheritance": solid line with hollow triangle, from subtype to supertype.
+- "realization": dashed line with hollow triangle, from implementation to interface.
+- "association": solid line between related elements.
+- "dependency": dashed arrow, from dependent to dependency.
+- "aggregation": solid line with hollow diamond at the whole side.
+- "composition": solid line with filled diamond at the whole side.
+- "contains": containment or package ownership when UML aggregation/composition would be too strong.
+- "uses": runtime or implementation usage.
+- "creates": factory or construction relationship.
+- "calls": call/control-flow relationship.
+- "emits": event publication.
+- "subscribes": event subscription.
+- "reads": read access to data.
+- "writes": write access to data.
+
+Optional top-level fields:
+- "generatedAt": ISO-8601 date-time string.
+- "scope": short text describing the diagram scope.
+- "metadata": object with extra context.
+- "groups": visual or semantic clusters, such as packages, layers, or bounded contexts.
+- "views": renderer hints for one or more named views.
+- "legend": labels and colors the renderer may use.
+- "constraints": short rules, assumptions, or caveats.
+
+Use this shape for optional groups:
+
+{
+  "id": "domain",
+  "title": "Domain Model",
+  "kind": "package",
+  "elements": ["Plan", "Epic", "Story"]
+}
+
+Allowed group kind values:
+- "package"
+- "layer"
+- "bounded-context"
+- "namespace"
+- "folder"
+- "feature"
+
+Use this shape for optional views:
+
+{
+  "id": "overview",
+  "title": "Overview",
+  "layout": {
+    "engine": "layered",
+    "direction": "TB"
+  },
+  "include": ["Plan", "Epic", "Story"],
+  "focus": ["Plan"]
+}
+
+Allowed layout engine values:
+- "auto"
+- "layered"
+- "grid"
+- "tree"
+- "manual"
+
+Allowed layout direction values:
+- "TB"
+- "BT"
+- "LR"
+- "RL"
+
+Use this shape for element attributes:
+
+{
+  "visibility": "private",
+  "name": "stories",
+  "type": "Story[]",
+  "required": true,
+  "static": false,
+  "readonly": false,
+  "summary": "Stories in the epic."
+}
+
+Use this shape for element operations:
+
+{
+  "visibility": "public",
+  "name": "fromJSON",
+  "parameters": [
+    {
+      "name": "value",
+      "type": "unknown",
+      "required": true
+    }
+  ],
+  "returns": "Plan",
+  "summary": "Builds a typed plan from raw JSON."
+}
+
+Allowed visibility values:
+- "public"
+- "private"
+- "protected"
+- "package"
+
+Use this shape for relationships:
+
+{
+  "id": "Story-depends-on-Story",
+  "from": "Story",
+  "to": "Story",
+  "kind": "dependency",
+  "label": "dependencies",
+  "fromMultiplicity": "0..*",
+  "toMultiplicity": "0..*",
+  "navigability": "target",
+  "summary": "A story may depend on other stories."
+}
+
+Allowed navigability values:
+- "none"
+- "source"
+- "target"
+- "both"
+
+Prefer concise, dense diagrams. Avoid filler. Do not invent exact classes, methods, files, packages, APIs, or dates unless they were provided or are obvious from context.
