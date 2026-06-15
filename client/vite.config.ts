@@ -14,6 +14,7 @@ export default defineConfig(({ mode }) => {
         name: isMap ? "BobMapClient" : "BobPlanClient",
         formats: ["iife"],
         fileName: () => isMap ? "map.js" : "plan.js",
+        cssFileName: isMap ? "map" : "plan",
       },
       rollupOptions: {
         output: {

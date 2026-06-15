@@ -28,21 +28,21 @@ tasks:
   test:
     desc: Run tests
     cmds:
-      - deno test
+      - deno test --allow-read --allow-write --allow-env=HOME,USERPROFILE
 
   run:
     desc: Run the CLI
     cmds:
-      - deno run --allow-read --allow-write src/main.ts {{.CLI_ARGS}}
+      - deno run --allow-read --allow-write --allow-env=HOME,USERPROFILE src/main.ts {{.CLI_ARGS}}
   run-plan:
     desc: Run sample plan
     cmds:
-      - deno run --allow-read --allow-write src/main.ts plan
+      - deno run --allow-read --allow-write --allow-env=HOME,USERPROFILE src/main.ts plan
 
   run-map:
     desc: Run sample map
     cmds:
-      - deno run --allow-read --allow-write src/main.ts map
+      - deno run --allow-read --allow-write --allow-env=HOME,USERPROFILE src/main.ts map
 
   build-client:
     desc: Build the self-contained Svelte client bundles
@@ -54,7 +54,15 @@ tasks:
     desc: Compile the CLI into an executable
     cmds:
       - mkdir -p dist
-      - deno compile --output {{.OUT}} src/main.ts
+      - deno compile --allow-read --allow-write --allow-env=HOME,USERPROFILE --include plan.js --include plan.css --include plan-components.css --include map.js --include map.css --include themes --include llm_output_format.txt --include llm_uml_output_format.txt --output {{.OUT}} src/main.ts
+
+  install:
+    desc: Install the compiled CLI to ~/.local/bin
+    deps:
+      - build
+    cmds:
+      - mkdir -p ~/.local/bin
+      - cp {{.OUT}} ~/.local/bin/{{.APP}}
 
   clean:
     desc: Remove build and coverage output

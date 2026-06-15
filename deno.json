@@ -3,9 +3,10 @@
     "fmt": "deno fmt",
     "lint": "deno lint",
     "check": "deno check src/main.ts",
-    "test": "deno test",
-    "run": "deno run src/main.ts",
-    "build": "deno compile --output dist/bob src/main.ts"
+    "test": "deno test --allow-read --allow-write --allow-env=HOME,USERPROFILE",
+    "run": "deno run --allow-read --allow-write --allow-env=HOME,USERPROFILE src/main.ts",
+    "build": "deno compile --allow-read --allow-write --allow-env=HOME,USERPROFILE --include plan.js --include plan.css --include plan-components.css --include map.js --include map.css --include themes --include llm_output_format.txt --include llm_uml_output_format.txt --output dist/bob src/main.ts",
+    "install": "deno task build && mkdir -p ~/.local/bin && cp dist/bob ~/.local/bin/bob"
   },
   "fmt": {
     "exclude": ["client", "plan.js", "map.js"],

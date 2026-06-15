@@ -6,12 +6,14 @@
   import NavItem from "./NavItem.svelte"
   import EpicNavGroup from "./EpicNavGroup.svelte"
   import SectionsNavGroup from "./SectionsNavGroup.svelte"
+  import ThemePicker from "./ThemePicker.svelte"
 
   export let plan: Plan
   export let target: HTMLElement | null = null
 
   let activeId: string = "overview"
   let epicsGroup: HTMLElement
+  let navScroll: HTMLElement
 
   function navigate(targetId: string): void {
     activeId = targetId
@@ -25,10 +27,11 @@
   $: sectionSummaries = (plan.sections ?? []).map((s) => ({ id: s.id, title: s.title }))
 </script>
 
-<div use:portal={target}>
+<div class="sidebar-shell" use:portal={target}>
   <SidebarHeader title={plan.title} />
 
-  <NavItem
+  <div class="sidebar-scroll" bind:this={navScroll}>
+    <NavItem
     targetId="overview"
     label="Overview"
     active={activeId === "overview"}
@@ -90,4 +93,28 @@
     depth={0}
     on:navigate={(event) => navigate(event.detail)}
   />
+  </div>
+
+  <div class="sidebar-footer">
+    <ThemePicker />
+  </div>
 </div>
+
+<style>
+  .sidebar-shell {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+    min-height: 100%;
+  }
+
+  .sidebar-scroll {
+    overflow-y: auto;
+    min-height: 0;
+  }
+
+  .sidebar-footer {
+    border-top: 1px solid var(--line);
+    background: var(--paper);
+  }
+</style>
