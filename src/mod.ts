@@ -46,6 +46,11 @@ export function runCli(args: string[]): void {
   if (command === "plan") {
     const planArgs = args.slice(1)
 
+    if (planArgs[0] === "help" || planArgs[0] === "--help" || planArgs[0] === "-h") {
+      printPlanHelp()
+      return
+    }
+
     if (planArgs[0] === "read") {
       try {
         planRead(planArgs.slice(1))
@@ -66,7 +71,14 @@ export function runCli(args: string[]): void {
       defaultOutput: "dist/plan.html",
     }))
   } else if (command === "map") {
-    map(parseRenderOptions(args.slice(1), {
+    const mapArgs = args.slice(1)
+
+    if (mapArgs[0] === "help" || mapArgs[0] === "--help" || mapArgs[0] === "-h") {
+      printMapHelp()
+      return
+    }
+
+    map(parseRenderOptions(mapArgs, {
       defaultInput: "sample_map.json",
       defaultOutput: "dist/map.html",
     }))
@@ -425,14 +437,63 @@ Usage:
   bob [command] [options]
 
 Commands:
-  help      Show this help text
-  usage     Explain CLI usage and input formats for LLMs
-  version   Show the CLI version
-  plan      Render a plan based on the given input
-  plan read <path>  Print a bob plan as Markdown to stdout
-  map       Render a map based on the given input
+  help, --help, -h  Show this help text
+  usage            Explain CLI usage and input formats for LLMs
+  version          Show the CLI version
+  plan             Render a plan based on the given input
+  map              Render a map based on the given input
+
+Plan commands:
+  bob plan --help              Show detailed help for plan rendering
+  bob plan read <path>         Print a bob plan as Markdown to stdout
+
+Map commands:
+  bob map --help               Show detailed help for map rendering
 
 Options:
   -i, --input <path>    JSON file to render
   -o, --output <path>   HTML file to write`)
+}
+
+function printPlanHelp(): void {
+  const planFormat = readAssetTextFile("llm_output_format.txt").trim()
+
+  console.log(`bob plan
+
+Usage:
+  bob plan [options]
+  bob plan read <path>
+
+Render a plan JSON file to a self-contained HTML page. Without --input, it reads
+sample_plan.json; without --output, it writes dist/plan.html.
+
+Options:
+  -i, --input <path>    Plan JSON file to render
+  -o, --output <path>   HTML file to write
+
+Read subcommand:
+  bob plan read <path>  Print a bob plan as Markdown to stdout. The path can be
+                        raw plan JSON or a bob-generated plan HTML file.
+
+Plan input format:
+${indentText(planFormat)}`)
+}
+
+function printMapHelp(): void {
+  const mapFormat = readAssetTextFile("llm_uml_output_format.txt").trim()
+
+  console.log(`bob map
+
+Usage:
+  bob map [options]
+
+Render a UML-style map JSON file to a self-contained HTML page. Without --input,
+it reads sample_map.json; without --output, it writes dist/map.html.
+
+Options:
+  -i, --input <path>    Map JSON file to render
+  -o, --output <path>   HTML file to write
+
+Map input format:
+${indentText(mapFormat)}`)
 }

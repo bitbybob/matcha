@@ -67,11 +67,129 @@ Deno.test("prints help with plan read subcommand", () => {
     const expected of [
       "plan read <path>",
       "Print a bob plan as Markdown to stdout",
+      "bob plan --help",
+      "bob map --help",
+      "help, --help, -h",
     ]
   ) {
     if (!output.includes(expected)) {
       throw new Error(`Expected help output to include: ${expected}`)
     }
+  }
+})
+
+Deno.test("root --help prints help", () => {
+  using logSpy = spy(console, "log")
+
+  runCli(["--help"])
+
+  assertSpyCalls(logSpy, 1)
+
+  const output = logSpy.calls[0].args[0]
+
+  if (typeof output !== "string" || !output.includes("bob plan --help")) {
+    throw new Error("Expected root --help output to reference subcommand help")
+  }
+})
+
+Deno.test("root -h prints help", () => {
+  using logSpy = spy(console, "log")
+
+  runCli(["-h"])
+
+  assertSpyCalls(logSpy, 1)
+
+  const output = logSpy.calls[0].args[0]
+
+  if (typeof output !== "string" || !output.includes("bob map --help")) {
+    throw new Error("Expected root -h output to reference subcommand help")
+  }
+})
+
+Deno.test("plan --help prints plan help", () => {
+  using logSpy = spy(console, "log")
+
+  runCli(["plan", "--help"])
+
+  assertSpyCalls(logSpy, 1)
+
+  const output = logSpy.calls[0].args[0]
+
+  if (typeof output !== "string") {
+    throw new Error("Expected plan help output to be a string")
+  }
+
+  for (
+    const expected of [
+      "bob plan",
+      "Render a plan JSON file",
+      "Plan input format:",
+      "The JSON object must follow this compact plan format:",
+      "bob plan read <path>",
+      "-i, --input <path>",
+      "-o, --output <path>",
+    ]
+  ) {
+    if (!output.includes(expected)) {
+      throw new Error(`Expected plan help output to include: ${expected}`)
+    }
+  }
+})
+
+Deno.test("plan -h prints plan help", () => {
+  using logSpy = spy(console, "log")
+
+  runCli(["plan", "-h"])
+
+  assertSpyCalls(logSpy, 1)
+
+  const output = logSpy.calls[0].args[0]
+
+  if (typeof output !== "string" || !output.includes("Plan input format:")) {
+    throw new Error("Expected plan -h output to include plan format guide")
+  }
+})
+
+Deno.test("map --help prints map help", () => {
+  using logSpy = spy(console, "log")
+
+  runCli(["map", "--help"])
+
+  assertSpyCalls(logSpy, 1)
+
+  const output = logSpy.calls[0].args[0]
+
+  if (typeof output !== "string") {
+    throw new Error("Expected map help output to be a string")
+  }
+
+  for (
+    const expected of [
+      "bob map",
+      "Render a UML-style map",
+      "Map input format:",
+      "The JSON object must follow this compact UML diagram format:",
+      "-i, --input <path>",
+      "-o, --output <path>",
+    ]
+  ) {
+    if (!output.includes(expected)) {
+      throw new Error(`Expected map help output to include: ${expected}`)
+    }
+  }
+})
+
+Deno.test("map -h prints map help", () => {
+  using logSpy = spy(console, "log")
+
+  runCli(["map", "-h"])
+
+  assertSpyCalls(logSpy, 1)
+
+  const output = logSpy.calls[0].args[0]
+
+  if (typeof output !== "string" || !output.includes("Map input format:")) {
+    throw new Error("Expected map -h output to include map format guide")
   }
 })
 
