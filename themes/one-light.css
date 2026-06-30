@@ -1,18 +1,18 @@
 :root[data-theme="one-light"] {
-  --bob-accent: #4078f2;
-  --bob-panel-bg: #fafafa;
-  --bob-surface0: #f0f0f1;
-  --bob-surface1: #e5e5e6;
-  --bob-surface-dim: #f5f5f6;
-  --bob-overlay0: #a0a1a7;
-  --bob-overlay1: #686b77;
-  --bob-text: #383a42;
-  --bob-subtext0: #686b77;
-  --bob-mauve: #a626a4;
-  --bob-green: #50a14f;
-  --bob-yellow: #c18401;
-  --bob-red: #e45649;
-  --bob-blue: #4078f2;
-  --bob-teal: #0184bc;
-  --bob-peach: #986801;
+  --matcha-accent: #4078f2;
+  --matcha-panel-bg: #fafafa;
+  --matcha-surface0: #f0f0f1;
+  --matcha-surface1: #e5e5e6;
+  --matcha-surface-dim: #f5f5f6;
+  --matcha-overlay0: #a0a1a7;
+  --matcha-overlay1: #686b77;
+  --matcha-text: #383a42;
+  --matcha-subtext0: #686b77;
+  --matcha-mauve: #a626a4;
+  --matcha-green: #50a14f;
+  --matcha-yellow: #c18401;
+  --matcha-red: #e45649;
+  --matcha-blue: #4078f2;
+  --matcha-teal: #0184bc;
+  --matcha-peach: #986801;
 }

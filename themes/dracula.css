@@ -1,18 +1,18 @@
 :root[data-theme="dracula"] {
-  --bob-accent: #bd93f9;
-  --bob-panel-bg: #282a36;
-  --bob-surface0: #44475a;
-  --bob-surface1: #6272a4;
-  --bob-surface-dim: #282a36;
-  --bob-overlay0: #6272a4;
-  --bob-overlay1: #828cb4;
-  --bob-text: #f8f8f2;
-  --bob-subtext0: #d2d2dc;
-  --bob-mauve: #ff79c6;
-  --bob-green: #50fa7b;
-  --bob-yellow: #f1fa8c;
-  --bob-red: #ff5555;
-  --bob-blue: #8be9fd;
-  --bob-teal: #8be9fd;
-  --bob-peach: #ffb86c;
+  --matcha-accent: #bd93f9;
+  --matcha-panel-bg: #282a36;
+  --matcha-surface0: #44475a;
+  --matcha-surface1: #6272a4;
+  --matcha-surface-dim: #282a36;
+  --matcha-overlay0: #6272a4;
+  --matcha-overlay1: #828cb4;
+  --matcha-text: #f8f8f2;
+  --matcha-subtext0: #d2d2dc;
+  --matcha-mauve: #ff79c6;
+  --matcha-green: #50fa7b;
+  --matcha-yellow: #f1fa8c;
+  --matcha-red: #ff5555;
+  --matcha-blue: #8be9fd;
+  --matcha-teal: #8be9fd;
+  --matcha-peach: #ffb86c;
 }

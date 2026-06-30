@@ -1,18 +1,18 @@
 :root[data-theme="one-dark"] {
-  --bob-accent: #61afef;
-  --bob-panel-bg: #282c34;
-  --bob-surface0: #2c313a;
-  --bob-surface1: #3e4451;
-  --bob-surface-dim: #282c34;
-  --bob-overlay0: #5c6370;
-  --bob-overlay1: #737a87;
-  --bob-text: #abb2bf;
-  --bob-subtext0: #969ca8;
-  --bob-mauve: #c678dd;
-  --bob-green: #98c379;
-  --bob-yellow: #e5c07b;
-  --bob-red: #e06c75;
-  --bob-blue: #61afef;
-  --bob-teal: #56b6c2;
-  --bob-peach: #d19a66;
+  --matcha-accent: #61afef;
+  --matcha-panel-bg: #282c34;
+  --matcha-surface0: #2c313a;
+  --matcha-surface1: #3e4451;
+  --matcha-surface-dim: #282c34;
+  --matcha-overlay0: #5c6370;
+  --matcha-overlay1: #737a87;
+  --matcha-text: #abb2bf;
+  --matcha-subtext0: #969ca8;
+  --matcha-mauve: #c678dd;
+  --matcha-green: #98c379;
+  --matcha-yellow: #e5c07b;
+  --matcha-red: #e06c75;
+  --matcha-blue: #61afef;
+  --matcha-teal: #56b6c2;
+  --matcha-peach: #d19a66;
 }

@@ -34,7 +34,7 @@ export function runCli(args: string[]): void {
   }
 
   if (command === "version" || command === "--version" || command === "-V") {
-    console.log("bob 0.1.0")
+    console.log("matcha 0.1.0")
     return
   }
 
@@ -182,7 +182,7 @@ function plan(options: RenderOptions): void {
 
 export function planRead(args: string[]): void {
   if (args.length === 0 || args.length > 1 || args[0].startsWith("-")) {
-    throw new CliError("Usage: bob plan read <path>")
+    throw new CliError("Usage: matcha plan read <path>")
   }
 
   const inputPath = expandHomePath(args[0])
@@ -223,7 +223,7 @@ function extractPlanFromHtml(html: string, inputPath: string): Plan {
 
   if (!match) {
     throw new CliError(
-      `Unsupported input: ${inputPath} is not plan JSON or a bob-generated plan HTML file`,
+      `Unsupported input: ${inputPath} is not plan JSON or a matcha-generated plan HTML file`,
     )
   }
 
@@ -339,7 +339,7 @@ function createHtmlHead(
     <head>
         <title>${title}</title>
         <meta charset="UTF-8">
-        ${createThemeBootScript("bob-plan-theme")}
+        ${createThemeBootScript("matcha-plan-theme")}
         <style>${themeCss}</style>
         <style>${planCss}</style>
         ${planComponentsCss ? `<style>${planComponentsCss}</style>` : ""}
@@ -357,14 +357,14 @@ function createMapHtmlHead(
     <title>${title}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    ${createThemeBootScript("bob-map-theme")}
+    ${createThemeBootScript("matcha-map-theme")}
     <style>${themeCss}</style>
     ${mapCss ? `<style>${mapCss}</style>` : ""}
   </head>
   `
 }
 
-function createThemeBootScript(storageKey: "bob-plan-theme" | "bob-map-theme"): string {
+function createThemeBootScript(storageKey: "matcha-plan-theme" | "matcha-map-theme"): string {
   return `<script>
       (function () {
         var themes = new Set(${JSON.stringify(themeNames)});
@@ -383,40 +383,40 @@ function printUsageGuide(): void {
   const planFormat = readAssetTextFile("llm_output_format.txt").trim()
   const mapFormat = readAssetTextFile("llm_uml_output_format.txt").trim()
 
-  console.log(`bob usage for LLMs
+  console.log(`matcha usage for LLMs
 
 Purpose:
-  bob turns structured JSON into self-contained HTML artifacts.
-  Use "bob plan" for implementation plans.
-  Use "bob map" for semantic UML-style diagrams.
+  matcha turns structured JSON into self-contained HTML artifacts.
+  Use "matcha plan" for implementation plans.
+  Use "matcha map" for semantic UML-style diagrams.
 
 Commands:
-  bob plan --input path/to/plan.json --output path/to/plan.html
-  bob map --input path/to/map.json --output path/to/map.html
-  bob plan read path/to/plan.json          Print Markdown to stdout
-  bob plan read path/to/plan.html          Read a bob-generated plan HTML back as Markdown
+  matcha plan --input path/to/plan.json --output path/to/plan.html
+  matcha map --input path/to/map.json --output path/to/map.html
+  matcha plan read path/to/plan.json          Print Markdown to stdout
+  matcha plan read path/to/plan.html          Read a matcha-generated plan HTML back as Markdown
 
 Defaults:
-  bob plan reads sample_plan.json and writes dist/plan.html.
-  bob map reads sample_map.json and writes dist/map.html.
+  matcha plan reads sample_plan.json and writes dist/plan.html.
+  matcha map reads sample_map.json and writes dist/map.html.
 
 Path rules:
   --input is a JSON file matching the selected command format.
   --output is the HTML file to write.
   Parent directories for --output are created automatically.
-  Quoted home paths such as "~/clankers/file.html" are expanded by bob.
+  Quoted home paths such as "~/clankers/file.html" are expanded by matcha.
 
 LLM workflow:
   1. Decide whether the requested artifact is a plan or map.
   2. Produce exactly one valid JSON object matching the format below.
   3. Save that JSON to a file.
-  4. Run the matching bob command with --input and --output.
+  4. Run the matching matcha command with --input and --output.
   5. Do not put Markdown fences or commentary in the JSON input file.
-  6. To read an existing plan as Markdown, run \`bob plan read <path>\`.
+  6. To read an existing plan as Markdown, run \`matcha plan read <path>\`.
   7. No --output option exists for plan read; redirect stdout (\`> plan.md\`) or pipe it.
 
 Reading plans as Markdown:
-  Use \`bob plan read\` when you need to consume an existing plan without parsing JSON or
+  Use \`matcha plan read\` when you need to consume an existing plan without parsing JSON or
   scraping rendered HTML. The command is deterministic, offline, and writes to stdout only.
 
 Plan input format:
@@ -431,10 +431,10 @@ function indentText(text: string): string {
 }
 
 function printHelp(): void {
-  console.log(`bob
+  console.log(`matcha
 
 Usage:
-  bob [command] [options]
+  matcha [command] [options]
 
 Commands:
   help, --help, -h  Show this help text
@@ -444,11 +444,11 @@ Commands:
   map              Render a map based on the given input
 
 Plan commands:
-  bob plan --help              Show detailed help for plan rendering
-  bob plan read <path>         Print a bob plan as Markdown to stdout
+  matcha plan --help              Show detailed help for plan rendering
+  matcha plan read <path>         Print a matcha plan as Markdown to stdout
 
 Map commands:
-  bob map --help               Show detailed help for map rendering
+  matcha map --help               Show detailed help for map rendering
 
 Options:
   -i, --input <path>    JSON file to render
@@ -458,11 +458,11 @@ Options:
 function printPlanHelp(): void {
   const planFormat = readAssetTextFile("llm_output_format.txt").trim()
 
-  console.log(`bob plan
+  console.log(`matcha plan
 
 Usage:
-  bob plan [options]
-  bob plan read <path>
+  matcha plan [options]
+  matcha plan read <path>
 
 Render a plan JSON file to a self-contained HTML page. Without --input, it reads
 sample_plan.json; without --output, it writes dist/plan.html.
@@ -472,8 +472,8 @@ Options:
   -o, --output <path>   HTML file to write
 
 Read subcommand:
-  bob plan read <path>  Print a bob plan as Markdown to stdout. The path can be
-                        raw plan JSON or a bob-generated plan HTML file.
+  matcha plan read <path>  Print a matcha plan as Markdown to stdout. The path can be
+                        raw plan JSON or a matcha-generated plan HTML file.
 
 Plan input format:
 ${indentText(planFormat)}`)
@@ -482,10 +482,10 @@ ${indentText(planFormat)}`)
 function printMapHelp(): void {
   const mapFormat = readAssetTextFile("llm_uml_output_format.txt").trim()
 
-  console.log(`bob map
+  console.log(`matcha map
 
 Usage:
-  bob map [options]
+  matcha map [options]
 
 Render a UML-style map JSON file to a self-contained HTML page. Without --input,
 it reads sample_map.json; without --output, it writes dist/map.html.

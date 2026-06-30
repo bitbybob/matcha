@@ -1,18 +1,18 @@
 :root[data-theme="vesper"] {
-  --bob-accent: #ffc799;
-  --bob-panel-bg: #1a1a1a;
-  --bob-surface0: #232323;
-  --bob-surface1: #282828;
-  --bob-surface-dim: #101010;
-  --bob-overlay0: #5c5c5c;
-  --bob-overlay1: #7e7e7e;
-  --bob-text: #ffffff;
-  --bob-subtext0: #a0a0a0;
-  --bob-mauve: #ffd1a8;
-  --bob-green: #99ffe4;
-  --bob-yellow: #ffc799;
-  --bob-red: #ff8080;
-  --bob-blue: #b0b0b0;
-  --bob-teal: #66ddcc;
-  --bob-peach: #ffc799;
+  --matcha-accent: #ffc799;
+  --matcha-panel-bg: #1a1a1a;
+  --matcha-surface0: #232323;
+  --matcha-surface1: #282828;
+  --matcha-surface-dim: #101010;
+  --matcha-overlay0: #5c5c5c;
+  --matcha-overlay1: #7e7e7e;
+  --matcha-text: #ffffff;
+  --matcha-subtext0: #a0a0a0;
+  --matcha-mauve: #ffd1a8;
+  --matcha-green: #99ffe4;
+  --matcha-yellow: #ffc799;
+  --matcha-red: #ff8080;
+  --matcha-blue: #b0b0b0;
+  --matcha-teal: #66ddcc;
+  --matcha-peach: #ffc799;
 }

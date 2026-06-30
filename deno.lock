@@ -1,9 +1,11 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@std/assert@1.0.19": "1.0.19",
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14",
-    "jsr:@std/testing@*": "1.0.19"
+    "jsr:@std/testing@*": "1.0.19",
+    "jsr:@std/testing@1.0.19": "1.0.19"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -18,7 +20,7 @@
     "@std/testing@1.0.19": {
       "integrity": "f4236172365b216728dc3cc8b5e80a9f4c33083d1e4ede7613d5b25b4014898e",
       "dependencies": [
-        "jsr:@std/assert"
+        "jsr:@std/assert@^1.0.19"
       ]
     }
   }

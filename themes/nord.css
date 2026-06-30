@@ -1,18 +1,18 @@
 :root[data-theme="nord"] {
-  --bob-accent: #88c0d0;
-  --bob-panel-bg: #2e3440;
-  --bob-surface0: #3b4252;
-  --bob-surface1: #434c5e;
-  --bob-surface-dim: #2e3440;
-  --bob-overlay0: #4c566a;
-  --bob-overlay1: #646e82;
-  --bob-text: #eceff4;
-  --bob-subtext0: #d8dee9;
-  --bob-mauve: #b48ead;
-  --bob-green: #a3be8c;
-  --bob-yellow: #ebcb8b;
-  --bob-red: #bf616a;
-  --bob-blue: #81a1c1;
-  --bob-teal: #8fbcbb;
-  --bob-peach: #d08770;
+  --matcha-accent: #88c0d0;
+  --matcha-panel-bg: #2e3440;
+  --matcha-surface0: #3b4252;
+  --matcha-surface1: #434c5e;
+  --matcha-surface-dim: #2e3440;
+  --matcha-overlay0: #4c566a;
+  --matcha-overlay1: #646e82;
+  --matcha-text: #eceff4;
+  --matcha-subtext0: #d8dee9;
+  --matcha-mauve: #b48ead;
+  --matcha-green: #a3be8c;
+  --matcha-yellow: #ebcb8b;
+  --matcha-red: #bf616a;
+  --matcha-blue: #81a1c1;
+  --matcha-teal: #8fbcbb;
+  --matcha-peach: #d08770;
 }

@@ -30,11 +30,11 @@ Deno.test("prints LLM usage guide", () => {
 
   for (
     const expected of [
-      "bob usage for LLMs",
-      "bob plan --input path/to/plan.json --output path/to/plan.html",
-      "bob map --input path/to/map.json --output path/to/map.html",
-      "bob plan read path/to/plan.json",
-      "bob plan read path/to/plan.html",
+      "matcha usage for LLMs",
+      "matcha plan --input path/to/plan.json --output path/to/plan.html",
+      "matcha map --input path/to/map.json --output path/to/map.html",
+      "matcha plan read path/to/plan.json",
+      "matcha plan read path/to/plan.html",
       "Plan input format:",
       "Map input format:",
       "The JSON object must follow this compact plan format:",
@@ -66,9 +66,9 @@ Deno.test("prints help with plan read subcommand", () => {
   for (
     const expected of [
       "plan read <path>",
-      "Print a bob plan as Markdown to stdout",
-      "bob plan --help",
-      "bob map --help",
+      "Print a matcha plan as Markdown to stdout",
+      "matcha plan --help",
+      "matcha map --help",
       "help, --help, -h",
     ]
   ) {
@@ -87,7 +87,7 @@ Deno.test("root --help prints help", () => {
 
   const output = logSpy.calls[0].args[0]
 
-  if (typeof output !== "string" || !output.includes("bob plan --help")) {
+  if (typeof output !== "string" || !output.includes("matcha plan --help")) {
     throw new Error("Expected root --help output to reference subcommand help")
   }
 })
@@ -101,7 +101,7 @@ Deno.test("root -h prints help", () => {
 
   const output = logSpy.calls[0].args[0]
 
-  if (typeof output !== "string" || !output.includes("bob map --help")) {
+  if (typeof output !== "string" || !output.includes("matcha map --help")) {
     throw new Error("Expected root -h output to reference subcommand help")
   }
 })
@@ -121,11 +121,11 @@ Deno.test("plan --help prints plan help", () => {
 
   for (
     const expected of [
-      "bob plan",
+      "matcha plan",
       "Render a plan JSON file",
       "Plan input format:",
       "The JSON object must follow this compact plan format:",
-      "bob plan read <path>",
+      "matcha plan read <path>",
       "-i, --input <path>",
       "-o, --output <path>",
     ]
@@ -165,7 +165,7 @@ Deno.test("map --help prints map help", () => {
 
   for (
     const expected of [
-      "bob map",
+      "matcha map",
       "Render a UML-style map",
       "Map input format:",
       "The JSON object must follow this compact UML diagram format:",
@@ -692,7 +692,7 @@ Deno.test({
     assertThrows(
       () => planRead([]),
       Error,
-      "Usage: bob plan read",
+      "Usage: matcha plan read",
     )
   },
 })
@@ -703,7 +703,7 @@ Deno.test({
     assertThrows(
       () => planRead(["a.json", "b.json"]),
       Error,
-      "Usage: bob plan read",
+      "Usage: matcha plan read",
     )
   },
 })
@@ -714,7 +714,7 @@ Deno.test({
     assertThrows(
       () => planRead(["--output", "out.md"]),
       Error,
-      "Usage: bob plan read",
+      "Usage: matcha plan read",
     )
   },
 })
@@ -1016,7 +1016,7 @@ Deno.test("renderPlanMarkdown renders overview fields", () => {
   const markdown = renderPlanMarkdown({
     schemaVersion: 1,
     id: "overview",
-    project: "bob",
+    project: "matcha",
     title: "Overview Plan",
     status: "planned",
     generatedAt: "2026-06-15T12:00:00Z",
@@ -1028,7 +1028,7 @@ Deno.test("renderPlanMarkdown renders overview fields", () => {
     const expected of [
       "# Overview Plan",
       "- **Plan ID:** overview",
-      "- **Project:** bob",
+      "- **Project:** matcha",
       "- **Status:** planned",
       "- **Generated At:** 2026-06-15T12:00:00Z",
       "- **Schema Version:** 1",
@@ -1107,7 +1107,7 @@ Deno.test("renderPlanMarkdown renders epics and stories with all fields", () => 
             unitTests: ["Test one."],
             filesLikelyTouched: ["src/mod.ts"],
             commandsToRun: ["task test"],
-            artifacts: ["dist/bob"],
+            artifacts: ["dist/matcha"],
             notes: ["Note one."],
           },
         ],
@@ -1146,7 +1146,7 @@ Deno.test("renderPlanMarkdown renders epics and stories with all fields", () => 
       "task test",
       "```",
       "**Artifacts:**",
-      "dist/bob",
+      "dist/matcha",
       "**Notes:**",
       "Note one.",
     ]
@@ -1306,7 +1306,7 @@ Deno.test("renderPlanMarkdown renders workflows, commands, blockers, order, and 
       {
         title: "Verify",
         command: "task verify",
-        workingDirectory: "~/repos/bob",
+        workingDirectory: "~/repos/matcha",
         environment: { HOME: "/tmp" },
         expectedResults: ["Clean diff."],
         refs: ["E5.S4"],
@@ -1342,7 +1342,7 @@ Deno.test("renderPlanMarkdown renders workflows, commands, blockers, order, and 
       "   - Refs: E1.S1",
       "## Commands",
       "### Verify",
-      "- **Working Directory:** `~/repos/bob`",
+      "- **Working Directory:** `~/repos/matcha`",
       "- **Environment:**",
       "  - HOME=/tmp",
       "```sh",

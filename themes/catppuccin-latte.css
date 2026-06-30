@@ -1,18 +1,18 @@
 :root[data-theme="catppuccin-latte"] {
-  --bob-accent: #1e66f5;
-  --bob-panel-bg: #eff1f5;
-  --bob-surface0: #ccd0da;
-  --bob-surface1: #bcc0cc;
-  --bob-surface-dim: #e6e9ef;
-  --bob-overlay0: #9ca0b0;
-  --bob-overlay1: #8c8fa1;
-  --bob-text: #4c4f69;
-  --bob-subtext0: #6c6f85;
-  --bob-mauve: #8839ef;
-  --bob-green: #40a02b;
-  --bob-yellow: #df8e1d;
-  --bob-red: #d20f39;
-  --bob-blue: #1e66f5;
-  --bob-teal: #179299;
-  --bob-peach: #fe640b;
+  --matcha-accent: #1e66f5;
+  --matcha-panel-bg: #eff1f5;
+  --matcha-surface0: #ccd0da;
+  --matcha-surface1: #bcc0cc;
+  --matcha-surface-dim: #e6e9ef;
+  --matcha-overlay0: #9ca0b0;
+  --matcha-overlay1: #8c8fa1;
+  --matcha-text: #4c4f69;
+  --matcha-subtext0: #6c6f85;
+  --matcha-mauve: #8839ef;
+  --matcha-green: #40a02b;
+  --matcha-yellow: #df8e1d;
+  --matcha-red: #d20f39;
+  --matcha-blue: #1e66f5;
+  --matcha-teal: #179299;
+  --matcha-peach: #fe640b;
 }

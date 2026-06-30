@@ -1,18 +1,18 @@
 :root[data-theme="solarized-light"] {
-  --bob-accent: #268bd2;
-  --bob-panel-bg: #fdf6e3;
-  --bob-surface0: #eee8d5;
-  --bob-surface1: #93a1a1;
-  --bob-surface-dim: #eee8d5;
-  --bob-overlay0: #93a1a1;
-  --bob-overlay1: #586e75;
-  --bob-text: #657b83;
-  --bob-subtext0: #839496;
-  --bob-mauve: #d33682;
-  --bob-green: #859900;
-  --bob-yellow: #b58900;
-  --bob-red: #dc322f;
-  --bob-blue: #268bd2;
-  --bob-teal: #2aa198;
-  --bob-peach: #cb4b16;
+  --matcha-accent: #268bd2;
+  --matcha-panel-bg: #fdf6e3;
+  --matcha-surface0: #eee8d5;
+  --matcha-surface1: #93a1a1;
+  --matcha-surface-dim: #eee8d5;
+  --matcha-overlay0: #93a1a1;
+  --matcha-overlay1: #586e75;
+  --matcha-text: #657b83;
+  --matcha-subtext0: #839496;
+  --matcha-mauve: #d33682;
+  --matcha-green: #859900;
+  --matcha-yellow: #b58900;
+  --matcha-red: #dc322f;
+  --matcha-blue: #268bd2;
+  --matcha-teal: #2aa198;
+  --matcha-peach: #cb4b16;
 }

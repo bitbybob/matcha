@@ -1,6 +1,6 @@
 export const defaultTheme = "catppuccin-latte"
-export const planThemeStorageKey = "bob-plan-theme"
-export const mapThemeStorageKey = "bob-map-theme"
+export const planThemeStorageKey = "matcha-plan-theme"
+export const mapThemeStorageKey = "matcha-map-theme"
 
 export const themes = [
   { id: "catppuccin-latte", label: "Catppuccin Latte" },

@@ -1,18 +1,18 @@
 :root[data-theme="tokyo-night"] {
-  --bob-accent: #7aa2f7;
-  --bob-panel-bg: #1a1b26;
-  --bob-surface0: #24283b;
-  --bob-surface1: #414868;
-  --bob-surface-dim: #1a1b26;
-  --bob-overlay0: #565f89;
-  --bob-overlay1: #697196;
-  --bob-text: #c0caf5;
-  --bob-subtext0: #a9b1d6;
-  --bob-mauve: #bb9af7;
-  --bob-green: #9ece6a;
-  --bob-yellow: #e0af68;
-  --bob-red: #f7768e;
-  --bob-blue: #7aa2f7;
-  --bob-teal: #7dcfff;
-  --bob-peach: #ff9e64;
+  --matcha-accent: #7aa2f7;
+  --matcha-panel-bg: #1a1b26;
+  --matcha-surface0: #24283b;
+  --matcha-surface1: #414868;
+  --matcha-surface-dim: #1a1b26;
+  --matcha-overlay0: #565f89;
+  --matcha-overlay1: #697196;
+  --matcha-text: #c0caf5;
+  --matcha-subtext0: #a9b1d6;
+  --matcha-mauve: #bb9af7;
+  --matcha-green: #9ece6a;
+  --matcha-yellow: #e0af68;
+  --matcha-red: #f7768e;
+  --matcha-blue: #7aa2f7;
+  --matcha-teal: #7dcfff;
+  --matcha-peach: #ff9e64;
 }

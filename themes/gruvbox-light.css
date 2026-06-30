@@ -1,18 +1,18 @@
 :root[data-theme="gruvbox-light"] {
-  --bob-accent: #076678;
-  --bob-panel-bg: #fbf1c7;
-  --bob-surface0: #ebdbb2;
-  --bob-surface1: #d5c4a1;
-  --bob-surface-dim: #f2e5bc;
-  --bob-overlay0: #928374;
-  --bob-overlay1: #7c6f64;
-  --bob-text: #3c3836;
-  --bob-subtext0: #504945;
-  --bob-mauve: #8f3f71;
-  --bob-green: #79740e;
-  --bob-yellow: #b57614;
-  --bob-red: #9d0006;
-  --bob-blue: #076678;
-  --bob-teal: #427b58;
-  --bob-peach: #af3a03;
+  --matcha-accent: #076678;
+  --matcha-panel-bg: #fbf1c7;
+  --matcha-surface0: #ebdbb2;
+  --matcha-surface1: #d5c4a1;
+  --matcha-surface-dim: #f2e5bc;
+  --matcha-overlay0: #928374;
+  --matcha-overlay1: #7c6f64;
+  --matcha-text: #3c3836;
+  --matcha-subtext0: #504945;
+  --matcha-mauve: #8f3f71;
+  --matcha-green: #79740e;
+  --matcha-yellow: #b57614;
+  --matcha-red: #9d0006;
+  --matcha-blue: #076678;
+  --matcha-teal: #427b58;
+  --matcha-peach: #af3a03;
 }

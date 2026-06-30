@@ -854,8 +854,8 @@
 
   :global(body) {
     overflow: hidden;
-    background: var(--bob-panel-bg);
-    color: var(--bob-text);
+    background: var(--matcha-panel-bg);
+    color: var(--matcha-text);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
 
@@ -869,9 +869,9 @@
     height: 100vh;
     overflow: hidden;
     cursor: grab;
-    background-color: var(--bob-panel-bg);
+    background-color: var(--matcha-panel-bg);
     background-image:
-      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--bob-overlay1) 34%, transparent) 1px, transparent 0);
+      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--matcha-overlay1) 34%, transparent) 1px, transparent 0);
     background-size: 24px 24px;
     user-select: none;
   }
@@ -895,7 +895,7 @@
 
   .diagram-link path {
     fill: none;
-    stroke: var(--bob-overlay1);
+    stroke: var(--matcha-overlay1);
     stroke-width: 1.8;
     transition:
       opacity 140ms ease,
@@ -905,9 +905,9 @@
 
   .diagram-link text {
     paint-order: stroke;
-    stroke: var(--bob-panel-bg);
+    stroke: var(--matcha-panel-bg);
     stroke-width: 5px;
-    fill: var(--bob-subtext0);
+    fill: var(--matcha-subtext0);
     font-size: 12px;
     font-weight: 650;
     text-anchor: middle;
@@ -917,13 +917,13 @@
   }
 
   .diagram-link.link-highlighted path {
-    stroke: var(--bob-peach);
+    stroke: var(--matcha-peach);
     stroke-width: 4;
-    filter: drop-shadow(0 0 7px color-mix(in srgb, var(--bob-peach) 72%, transparent));
+    filter: drop-shadow(0 0 7px color-mix(in srgb, var(--matcha-peach) 72%, transparent));
   }
 
   .diagram-link.link-highlighted text {
-    fill: var(--bob-peach);
+    fill: var(--matcha-peach);
     font-weight: 800;
   }
 
@@ -933,10 +933,10 @@
 
   .diagram-node {
     position: absolute;
-    border: 2px solid var(--bob-overlay1);
+    border: 2px solid var(--matcha-overlay1);
     border-radius: 8px;
-    background: color-mix(in srgb, var(--bob-panel-bg) 96%, var(--bob-text));
-    box-shadow: 0 16px 38px color-mix(in srgb, var(--bob-text) 16%);
+    background: color-mix(in srgb, var(--matcha-panel-bg) 96%, var(--matcha-text));
+    box-shadow: 0 16px 38px color-mix(in srgb, var(--matcha-text) 16%);
     cursor: grab;
     overflow: hidden;
     transition:
@@ -951,19 +951,19 @@
   }
 
   .diagram-node.node-highlighted {
-    border-color: var(--bob-peach);
+    border-color: var(--matcha-peach);
     box-shadow:
-      0 18px 46px color-mix(in srgb, var(--bob-text) 18%),
-      0 0 0 3px color-mix(in srgb, var(--bob-peach) 28%),
-      0 0 26px color-mix(in srgb, var(--bob-peach) 32%);
+      0 18px 46px color-mix(in srgb, var(--matcha-text) 18%),
+      0 0 0 3px color-mix(in srgb, var(--matcha-peach) 28%),
+      0 0 26px color-mix(in srgb, var(--matcha-peach) 32%);
   }
 
   .diagram-node.node-pinned-highlight {
-    border-color: color-mix(in srgb, var(--bob-green) 58%, var(--bob-yellow));
+    border-color: color-mix(in srgb, var(--matcha-green) 58%, var(--matcha-yellow));
     box-shadow:
-      0 18px 46px color-mix(in srgb, var(--bob-text) 18%),
-      0 0 0 3px color-mix(in srgb, var(--bob-green) 22%, var(--bob-yellow) 18%),
-      0 0 28px color-mix(in srgb, var(--bob-green) 28%, var(--bob-yellow) 18%);
+      0 18px 46px color-mix(in srgb, var(--matcha-text) 18%),
+      0 0 0 3px color-mix(in srgb, var(--matcha-green) 22%, var(--matcha-yellow) 18%),
+      0 0 28px color-mix(in srgb, var(--matcha-green) 28%, var(--matcha-yellow) 18%);
   }
 
   .diagram-node.node-muted {
@@ -972,12 +972,12 @@
 
   .diagram-node header {
     padding: 12px 14px 10px;
-    border-bottom: 1px solid color-mix(in srgb, var(--bob-overlay1) 55%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--matcha-overlay1) 55%, transparent);
   }
 
   .diagram-node header p {
     margin: 0 0 4px;
-    color: var(--bob-subtext0);
+    color: var(--matcha-subtext0);
     font-size: 11px;
     font-weight: 750;
     text-transform: uppercase;
@@ -985,7 +985,7 @@
 
   .diagram-node h3 {
     margin: 0;
-    color: var(--bob-text);
+    color: var(--matcha-text);
     font-size: 16px;
     line-height: 1.25;
     overflow-wrap: anywhere;
@@ -994,7 +994,7 @@
   .node-summary {
     margin: 0;
     padding: 10px 14px;
-    color: var(--bob-subtext0);
+    color: var(--matcha-subtext0);
     font-size: 12px;
     line-height: 1.4;
   }
@@ -1002,15 +1002,15 @@
   .diagram-node ul {
     margin: 0;
     padding: 2px 14px 10px 30px;
-    color: var(--bob-subtext0);
+    color: var(--matcha-subtext0);
     font-size: 12px;
     line-height: 1.35;
   }
 
   .compartment {
-    border-top: 1px solid color-mix(in srgb, var(--bob-overlay1) 55%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--matcha-overlay1) 55%, transparent);
     padding: 8px 14px;
-    color: var(--bob-accent);
+    color: var(--matcha-accent);
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 11px;
     line-height: 1.65;
@@ -1018,19 +1018,19 @@
   }
 
   .node-component {
-    border-color: var(--bob-blue);
+    border-color: var(--matcha-blue);
   }
 
   .node-contract {
-    border-color: var(--bob-green);
+    border-color: var(--matcha-green);
   }
 
   .node-module {
-    border-color: var(--bob-mauve);
+    border-color: var(--matcha-mauve);
   }
 
   .node-artifact {
-    border-color: var(--bob-yellow);
+    border-color: var(--matcha-yellow);
   }
 
   .toolbar {
@@ -1049,17 +1049,17 @@
     width: 38px;
     min-width: 38px;
     height: 34px;
-    border: 1px solid var(--bob-overlay1);
+    border: 1px solid var(--matcha-overlay1);
     border-radius: 6px;
-    background: color-mix(in srgb, var(--bob-surface-dim) 94%, var(--bob-text));
-    color: var(--bob-text);
+    background: color-mix(in srgb, var(--matcha-surface-dim) 94%, var(--matcha-text));
+    color: var(--matcha-text);
     font-size: 14px;
     font-weight: 750;
     cursor: pointer;
   }
 
   .toolbar button:hover {
-    background: var(--bob-surface0);
+    background: var(--matcha-surface0);
   }
 
   .theme-control {
@@ -1068,21 +1068,21 @@
     align-items: center;
     height: 34px;
     padding: 0 8px 0 10px;
-    border: 1px solid var(--bob-overlay1);
+    border: 1px solid var(--matcha-overlay1);
     border-radius: 6px;
-    background: color-mix(in srgb, var(--bob-surface-dim) 94%, var(--bob-text));
-    color: var(--bob-text);
+    background: color-mix(in srgb, var(--matcha-surface-dim) 94%, var(--matcha-text));
+    color: var(--matcha-text);
     cursor: pointer;
   }
 
   .theme-control:hover {
-    background: var(--bob-surface0);
+    background: var(--matcha-surface0);
   }
 
   .theme-control :global(.theme-icon) {
     flex: none;
     margin-right: 6px;
-    color: var(--bob-subtext0);
+    color: var(--matcha-subtext0);
     pointer-events: none;
   }
 
@@ -1096,7 +1096,7 @@
     padding-right: 18px;
     border: 0;
     background: transparent;
-    color: var(--bob-text);
+    color: var(--matcha-text);
     font: inherit;
     font-size: 13px;
     font-weight: 650;
@@ -1115,7 +1115,7 @@
     margin-top: -2px;
     border-left: 4px solid transparent;
     border-right: 4px solid transparent;
-    border-top: 4px solid var(--bob-subtext0);
+    border-top: 4px solid var(--matcha-subtext0);
     pointer-events: none;
   }
 
@@ -1123,10 +1123,10 @@
   .title-panel {
     position: fixed;
     z-index: 20;
-    border: 1px solid var(--bob-overlay1);
+    border: 1px solid var(--matcha-overlay1);
     border-radius: 8px;
-    background: color-mix(in srgb, var(--bob-surface-dim) 94%, var(--bob-text));
-    box-shadow: 0 12px 34px color-mix(in srgb, var(--bob-text) 16%);
+    background: color-mix(in srgb, var(--matcha-surface-dim) 94%, var(--matcha-text));
+    box-shadow: 0 12px 34px color-mix(in srgb, var(--matcha-text) 16%);
   }
 
   .legend {
@@ -1138,7 +1138,7 @@
 
   .legend h2 {
     margin: 0 0 8px;
-    color: var(--bob-text);
+    color: var(--matcha-text);
     font-size: 13px;
   }
 
@@ -1146,7 +1146,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: var(--bob-subtext0);
+    color: var(--matcha-subtext0);
     font-size: 12px;
     line-height: 1.8;
   }
@@ -1160,8 +1160,8 @@
   .legend-meta {
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid var(--bob-overlay1);
-    color: var(--bob-subtext0);
+    border-top: 1px solid var(--matcha-overlay1);
+    color: var(--matcha-subtext0);
     font-size: 12px;
   }
 
@@ -1174,7 +1174,7 @@
 
   .title-panel p {
     margin: 0 0 3px;
-    color: var(--bob-accent);
+    color: var(--matcha-accent);
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
@@ -1182,7 +1182,7 @@
 
   .title-panel h1 {
     margin: 0;
-    color: var(--bob-text);
+    color: var(--matcha-text);
     font-size: 18px;
     line-height: 1.2;
   }
@@ -1202,7 +1202,7 @@
   }
 
   .empty-state p {
-    color: var(--bob-subtext0);
+    color: var(--matcha-subtext0);
   }
 
   @media (max-width: 720px) {
