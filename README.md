@@ -1,26 +1,16 @@
-# matcha
+# matcha 🍵
 
-Deno CLI scaffold that can be compiled into a standalone executable.
+Matcha is is a finely ground powder of green tea specially processed from shade-grown tea leaves but its also a CLI.
+The Matcha CLI lets your agent output static artifacts like a plan or a map, without having to worry about semi-functional / semi-broken vibe coded UIs.
+Furthermore matcha lets you escape the markdown flavoured hellscape that interacting with a clanker has become.
 
-## Tasks
-
-```sh
-task fmt
-task lint
-task check
-task test
-task run -- help
-task build
-task install
-```
-
-The compiled executable is written to `dist/matcha`.
+tl;dr: Matcha turns agentic output into human friendly plans & maps.
 
 ## Usage
 
 ```sh
-matcha plan --input path/to/plan.json --output "~/clankers/file.html"
-matcha map --input path/to/map.json --output "~/clankers/file.html"
+matcha plan --input path/to/plan.json --output "~/matcha/file.html"
+matcha map --input path/to/map.json --output "~/matcha/file.html"
 matcha plan read plan.json
 matcha plan read dist/plan.html > plan.md
 matcha plan read dist/plan.html | codex
