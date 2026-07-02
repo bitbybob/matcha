@@ -1,0 +1,436 @@
+{
+  "schemaVersion": 1,
+  "id": "matcha-plan-map-renderer",
+  "title": "Matcha Plan And Map Renderer",
+  "project": "matcha",
+  "diagramKind": "mixed",
+  "status": "draft",
+  "scope": "Deno CLI and Svelte client architecture for rendering plan and UML map HTML artifacts.",
+  "summary": [
+    "The CLI reads structured JSON samples and emits standalone HTML files into dist. The plan path renders the existing plan browser, while the map path mounts a Svelte placeholder that will evolve into a JointJS-powered UML diagram.",
+    "The map renderer is intentionally split between a semantic UML data contract and a client-side renderer so the LLM output format stays independent from JointJS cell internals."
+  ],
+  "metadata": {
+    "runtime": "Deno",
+    "frontend": "Svelte",
+    "diagramLibrary": "JointJS",
+    "outputs": ["dist/plan.html", "dist/map.html"]
+  },
+  "groups": [
+    {
+      "id": "cli",
+      "title": "CLI",
+      "kind": "layer",
+      "elements": ["runCli", "planCommand", "mapCommand"]
+    },
+    {
+      "id": "shared-types",
+      "title": "Shared Types",
+      "kind": "layer",
+      "elements": ["Plan", "UmlDiagram", "UmlElement", "UmlRelationship"]
+    },
+    {
+      "id": "client",
+      "title": "Svelte Client",
+      "kind": "layer",
+      "elements": ["PlanApp", "MapApp", "PlanEntry", "MapEntry"]
+    },
+    {
+      "id": "artifacts",
+      "title": "Generated Artifacts",
+      "kind": "folder",
+      "elements": [
+        "sample_plan.json",
+        "sample_map.json",
+        "plan.js",
+        "map.js",
+        "dist/plan.html",
+        "dist/map.html"
+      ]
+    }
+  ],
+  "elements": [
+    {
+      "id": "runCli",
+      "name": "runCli",
+      "kind": "component",
+      "summary": "Dispatches CLI commands and handles help/version output.",
+      "responsibilities": [
+        "Route the plan command to the plan HTML generator.",
+        "Route the map command to the map HTML generator."
+      ],
+      "group": "cli"
+    },
+    {
+      "id": "planCommand",
+      "name": "plan()",
+      "kind": "component",
+      "summary": "Reads sample_plan.json and creates a standalone plan browser page.",
+      "responsibilities": [
+        "Embed plan JSON into a script tag.",
+        "Inline plan.css, theme CSS, and plan.js.",
+        "Write dist/plan.html."
+      ],
+      "group": "cli"
+    },
+    {
+      "id": "mapCommand",
+      "name": "map()",
+      "kind": "component",
+      "summary": "Reads sample_map.json and creates a standalone UML map page.",
+      "responsibilities": [
+        "Embed UML JSON into a script tag.",
+        "Inline map.js when the client bundle exists.",
+        "Write dist/map.html."
+      ],
+      "group": "cli"
+    },
+    {
+      "id": "Plan",
+      "name": "Plan",
+      "kind": "interface",
+      "summary": "Structured implementation plan document.",
+      "attributes": [
+        {
+          "name": "schemaVersion",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "Slug",
+          "required": true
+        },
+        {
+          "name": "epics",
+          "type": "Epic[]"
+        },
+        {
+          "name": "recommendedOrder",
+          "type": "RecommendedOrderItem[]"
+        }
+      ],
+      "group": "shared-types"
+    },
+    {
+      "id": "UmlDiagram",
+      "name": "UmlDiagram",
+      "kind": "interface",
+      "summary": "Semantic UML diagram document produced by an LLM and consumed by the map renderer.",
+      "attributes": [
+        {
+          "name": "schemaVersion",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "diagramKind",
+          "type": "UmlDiagramKind",
+          "required": true
+        },
+        {
+          "name": "elements",
+          "type": "UmlElement[]",
+          "required": true
+        },
+        {
+          "name": "relationships",
+          "type": "UmlRelationship[]",
+          "required": true
+        }
+      ],
+      "group": "shared-types"
+    },
+    {
+      "id": "UmlElement",
+      "name": "UmlElement",
+      "kind": "interface",
+      "summary": "A UML node such as a class, interface, component, module, actor, or note.",
+      "attributes": [
+        {
+          "name": "id",
+          "type": "Slug",
+          "required": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "kind",
+          "type": "UmlElementKind",
+          "required": true
+        },
+        {
+          "name": "attributes",
+          "type": "UmlMember[]"
+        },
+        {
+          "name": "operations",
+          "type": "UmlOperation[]"
+        }
+      ],
+      "group": "shared-types"
+    },
+    {
+      "id": "UmlRelationship",
+      "name": "UmlRelationship",
+      "kind": "interface",
+      "summary": "A typed relationship between UML elements.",
+      "attributes": [
+        {
+          "name": "from",
+          "type": "Slug",
+          "required": true
+        },
+        {
+          "name": "to",
+          "type": "Slug",
+          "required": true
+        },
+        {
+          "name": "kind",
+          "type": "UmlRelationshipKind",
+          "required": true
+        },
+        {
+          "name": "label",
+          "type": "string"
+        }
+      ],
+      "group": "shared-types"
+    },
+    {
+      "id": "PlanEntry",
+      "name": "client/src/main.ts",
+      "kind": "module",
+      "summary": "Plan browser entry point that reads embedded plan data and mounts App.svelte.",
+      "group": "client"
+    },
+    {
+      "id": "MapEntry",
+      "name": "client/src/map.ts",
+      "kind": "module",
+      "summary": "Map entry point that reads embedded UML data and mounts MapApp.svelte.",
+      "group": "client"
+    },
+    {
+      "id": "PlanApp",
+      "name": "App.svelte",
+      "kind": "component",
+      "summary": "Root Svelte component for the plan browser.",
+      "group": "client"
+    },
+    {
+      "id": "MapApp",
+      "name": "MapApp.svelte",
+      "kind": "component",
+      "summary": "Root Svelte component for the map view placeholder.",
+      "responsibilities": [
+        "Display the diagram title.",
+        "Show sample element and relationship counts.",
+        "Reserve a full-screen surface for the future JointJS paper."
+      ],
+      "group": "client"
+    },
+    {
+      "id": "sample_plan.json",
+      "name": "sample_plan.json",
+      "kind": "note",
+      "summary": "Development sample for the plan renderer.",
+      "group": "artifacts"
+    },
+    {
+      "id": "sample_map.json",
+      "name": "sample_map.json",
+      "kind": "note",
+      "summary": "Development sample for the map renderer.",
+      "group": "artifacts"
+    },
+    {
+      "id": "plan.js",
+      "name": "plan.js",
+      "kind": "module",
+      "summary": "Built IIFE bundle for the plan Svelte app.",
+      "group": "artifacts"
+    },
+    {
+      "id": "map.js",
+      "name": "map.js",
+      "kind": "module",
+      "summary": "Built IIFE bundle for the map Svelte app.",
+      "group": "artifacts"
+    },
+    {
+      "id": "dist/plan.html",
+      "name": "dist/plan.html",
+      "kind": "note",
+      "summary": "Generated standalone plan HTML artifact.",
+      "group": "artifacts"
+    },
+    {
+      "id": "dist/map.html",
+      "name": "dist/map.html",
+      "kind": "note",
+      "summary": "Generated standalone map HTML artifact.",
+      "group": "artifacts"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "runCli-calls-planCommand",
+      "from": "runCli",
+      "to": "planCommand",
+      "kind": "calls",
+      "label": "plan"
+    },
+    {
+      "id": "runCli-calls-mapCommand",
+      "from": "runCli",
+      "to": "mapCommand",
+      "kind": "calls",
+      "label": "map"
+    },
+    {
+      "id": "planCommand-reads-sample_plan",
+      "from": "planCommand",
+      "to": "sample_plan.json",
+      "kind": "reads"
+    },
+    {
+      "id": "mapCommand-reads-sample_map",
+      "from": "mapCommand",
+      "to": "sample_map.json",
+      "kind": "reads"
+    },
+    {
+      "id": "planCommand-writes-dist_plan",
+      "from": "planCommand",
+      "to": "dist/plan.html",
+      "kind": "writes"
+    },
+    {
+      "id": "mapCommand-writes-dist_map",
+      "from": "mapCommand",
+      "to": "dist/map.html",
+      "kind": "writes"
+    },
+    {
+      "id": "planCommand-uses-plan_js",
+      "from": "planCommand",
+      "to": "plan.js",
+      "kind": "uses"
+    },
+    {
+      "id": "mapCommand-uses-map_js",
+      "from": "mapCommand",
+      "to": "map.js",
+      "kind": "uses"
+    },
+    {
+      "id": "PlanEntry-realizes-Plan",
+      "from": "PlanEntry",
+      "to": "Plan",
+      "kind": "dependency",
+      "label": "reads"
+    },
+    {
+      "id": "MapEntry-realizes-UmlDiagram",
+      "from": "MapEntry",
+      "to": "UmlDiagram",
+      "kind": "dependency",
+      "label": "reads"
+    },
+    {
+      "id": "PlanEntry-mounts-PlanApp",
+      "from": "PlanEntry",
+      "to": "PlanApp",
+      "kind": "creates",
+      "label": "mount"
+    },
+    {
+      "id": "MapEntry-mounts-MapApp",
+      "from": "MapEntry",
+      "to": "MapApp",
+      "kind": "creates",
+      "label": "mount"
+    },
+    {
+      "id": "UmlDiagram-composes-UmlElement",
+      "from": "UmlDiagram",
+      "to": "UmlElement",
+      "kind": "composition",
+      "label": "elements",
+      "toMultiplicity": "1..*"
+    },
+    {
+      "id": "UmlDiagram-composes-UmlRelationship",
+      "from": "UmlDiagram",
+      "to": "UmlRelationship",
+      "kind": "composition",
+      "label": "relationships",
+      "toMultiplicity": "0..*"
+    },
+    {
+      "id": "sample_map-conforms-UmlDiagram",
+      "from": "sample_map.json",
+      "to": "UmlDiagram",
+      "kind": "realization",
+      "label": "conforms"
+    },
+    {
+      "id": "sample_plan-conforms-Plan",
+      "from": "sample_plan.json",
+      "to": "Plan",
+      "kind": "realization",
+      "label": "conforms"
+    }
+  ],
+  "views": [
+    {
+      "id": "overview",
+      "title": "Renderer Overview",
+      "layout": {
+        "engine": "layered",
+        "direction": "LR",
+        "groupBy": "group"
+      },
+      "focus": ["runCli", "mapCommand", "MapEntry", "MapApp"]
+    },
+    {
+      "id": "domain",
+      "title": "UML Domain Model",
+      "layout": {
+        "engine": "layered",
+        "direction": "TB"
+      },
+      "include": ["UmlDiagram", "UmlElement", "UmlRelationship"]
+    }
+  ],
+  "legend": [
+    {
+      "id": "component",
+      "label": "Component",
+      "color": "#71accc",
+      "description": "Executable CLI or Svelte component."
+    },
+    {
+      "id": "interface",
+      "label": "Interface",
+      "color": "#86aa8b",
+      "description": "Shared TypeScript data contract."
+    },
+    {
+      "id": "artifact",
+      "label": "Artifact",
+      "color": "#c9957f",
+      "description": "Input, bundle, or generated file."
+    }
+  ],
+  "constraints": [
+    "LLM-generated map JSON should remain semantic and avoid JointJS cell attributes.",
+    "Renderer development should use sample_map.json as a stable fixture.",
+    "The eventual JointJS implementation should preserve full-screen pan, zoom, drag, and fit controls."
+  ]
+}

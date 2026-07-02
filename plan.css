@@ -1,13 +1,13 @@
 :root {
-  --bg: var(--bob-panel-bg, #f8fafc);
-  --paper: color-mix(in srgb, var(--bob-panel-bg, #ffffff) 96%, var(--bob-text, #0f172a));
-  --ink: var(--bob-text, #0f172a);
-  --muted: var(--bob-subtext0, #475569);
-  --subtle: var(--bob-overlay0, #64748b);
-  --line: var(--bob-surface0, #e2e8f0);
-  --soft: var(--bob-surface-dim, #f1f5f9);
-  --primary: var(--bob-accent, #4f46e5);
-  --primary-hover: var(--bob-accent, #4338ca);
+  --bg: var(--matcha-panel-bg, #f8fafc);
+  --paper: color-mix(in srgb, var(--matcha-panel-bg, #ffffff) 96%, var(--matcha-text, #0f172a));
+  --ink: var(--matcha-text, #0f172a);
+  --muted: var(--matcha-subtext0, #475569);
+  --subtle: var(--matcha-overlay0, #64748b);
+  --line: var(--matcha-surface0, #e2e8f0);
+  --soft: var(--matcha-surface-dim, #f1f5f9);
+  --primary: var(--matcha-accent, #4f46e5);
+  --primary-hover: var(--matcha-accent, #4338ca);
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
@@ -556,8 +556,8 @@ button {
   display: block;
   margin-top: 0.75rem;
   border-radius: 0.375rem;
-  background: var(--bob-surface1, #0f172a);
-  color: var(--bob-text, white);
+  background: var(--matcha-surface1, #0f172a);
+  color: var(--matcha-text, white);
   padding: 0.75rem;
   font-size: 0.8125rem;
   overflow-x: auto;
