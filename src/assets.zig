@@ -1,30 +1,173 @@
 const std = @import("std");
 
-pub const AssetKind = enum {
+pub const TextAsset = struct {
+    name: []const u8,
+    contents: []const u8,
+};
+
+pub const ThemeAsset = struct {
+    name: []const u8,
+    path: []const u8,
+    css: []const u8,
+};
+
+pub const plan_js: TextAsset = .{
+    .name = "plan.js",
+    .contents = @embedFile("plan.js"),
+};
+
+pub const plan_css: TextAsset = .{
+    .name = "plan.css",
+    .contents = @embedFile("plan.css"),
+};
+
+pub const plan_components_css: TextAsset = .{
+    .name = "plan-components.css",
+    .contents = @embedFile("plan-components.css"),
+};
+
+pub const map_js: TextAsset = .{
+    .name = "map.js",
+    .contents = @embedFile("map.js"),
+};
+
+pub const map_css: TextAsset = .{
+    .name = "map.css",
+    .contents = @embedFile("map.css"),
+};
+
+pub const llm_output_format: TextAsset = .{
+    .name = "llm_output_format.txt",
+    .contents = @embedFile("llm_output_format.txt"),
+};
+
+pub const llm_uml_output_format: TextAsset = .{
+    .name = "llm_uml_output_format.txt",
+    .contents = @embedFile("llm_uml_output_format.txt"),
+};
+
+pub const required_assets = [_]TextAsset{
     plan_js,
     plan_css,
     plan_components_css,
     map_js,
     map_css,
-    theme_css,
     llm_output_format,
     llm_uml_output_format,
 };
 
-pub fn assetName(kind: AssetKind) []const u8 {
-    return switch (kind) {
-        .plan_js => "plan.js",
-        .plan_css => "plan.css",
-        .plan_components_css => "plan-components.css",
-        .map_js => "map.js",
-        .map_css => "map.css",
-        .theme_css => "themes",
-        .llm_output_format => "llm_output_format.txt",
-        .llm_uml_output_format => "llm_uml_output_format.txt",
+pub const themes = [_]ThemeAsset{
+    theme("catppuccin-latte"),
+    theme("catppuccin"),
+    theme("dracula"),
+    theme("gruvbox"),
+    theme("gruvbox-light"),
+    theme("kanagawa"),
+    theme("kanagawa-lotus"),
+    theme("nord"),
+    theme("one-dark"),
+    theme("one-light"),
+    theme("rose-pine"),
+    theme("rose-pine-dawn"),
+    theme("solarized"),
+    theme("solarized-light"),
+    theme("terminal"),
+    theme("tokyo-night"),
+    theme("tokyo-night-day"),
+    theme("vesper"),
+};
+
+pub fn assetByName(name: []const u8) ?TextAsset {
+    for (required_assets) |asset| {
+        if (std.mem.eql(u8, asset.name, name)) {
+            return asset;
+        }
+    }
+
+    return null;
+}
+
+pub fn themeByName(name: []const u8) ?ThemeAsset {
+    for (themes) |theme_asset| {
+        if (std.mem.eql(u8, theme_asset.name, name)) {
+            return theme_asset;
+        }
+    }
+
+    return null;
+}
+
+pub fn writeThemeCss(writer: *std.Io.Writer) std.Io.Writer.Error!void {
+    for (themes) |theme_asset| {
+        try writer.writeAll(theme_asset.css);
+        try writer.writeByte('\n');
+    }
+}
+
+pub fn themeCssByteLength() usize {
+    var total: usize = 0;
+
+    for (themes) |theme_asset| {
+        total += theme_asset.css.len + 1;
+    }
+
+    return total;
+}
+
+fn theme(comptime name: []const u8) ThemeAsset {
+    return .{
+        .name = name,
+        .path = "themes/" ++ name ++ ".css",
+        .css = @embedFile("themes/" ++ name ++ ".css"),
     };
 }
 
-test "asset names remain explicit" {
-    try std.testing.expectEqualStrings("plan.js", assetName(.plan_js));
-    try std.testing.expectEqualStrings("themes", assetName(.theme_css));
+test "required embedded assets are non-empty" {
+    for (required_assets) |asset| {
+        try std.testing.expect(asset.name.len > 0);
+        try std.testing.expect(asset.contents.len > 0);
+    }
+}
+
+test "theme assets are non-empty and in CLI order" {
+    const expected = [_][]const u8{
+        "catppuccin-latte",
+        "catppuccin",
+        "dracula",
+        "gruvbox",
+        "gruvbox-light",
+        "kanagawa",
+        "kanagawa-lotus",
+        "nord",
+        "one-dark",
+        "one-light",
+        "rose-pine",
+        "rose-pine-dawn",
+        "solarized",
+        "solarized-light",
+        "terminal",
+        "tokyo-night",
+        "tokyo-night-day",
+        "vesper",
+    };
+
+    try std.testing.expectEqual(expected.len, themes.len);
+    for (expected, themes) |expected_name, theme_asset| {
+        try std.testing.expectEqualStrings(expected_name, theme_asset.name);
+        try std.testing.expect(theme_asset.css.len > 0);
+    }
+}
+
+test "format documents are available without file IO" {
+    try std.testing.expect(std.mem.indexOf(u8, llm_output_format.contents, "Plan input format") != null);
+    try std.testing.expect(std.mem.indexOf(u8, llm_uml_output_format.contents, "Map input format") != null);
+}
+
+test "theme css can be streamed in manifest order" {
+    var buffer: [4096]u8 = undefined;
+    var writer: std.Io.Writer = .fixed(&buffer);
+
+    try writeThemeCss(&writer);
+    try std.testing.expect(writer.end > 0);
+    try std.testing.expectEqual(themeCssByteLength(), writer.end);
 }

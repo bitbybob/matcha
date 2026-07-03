@@ -7,6 +7,15 @@
     .paths = .{
         "build.zig",
         "build.zig.zon",
+        "llm_output_format.txt",
+        "llm_uml_output_format.txt",
+        "map.css",
+        "map.js",
+        "plan-components.css",
+        "plan.css",
+        "plan.js",
+        "root.zig",
         "src",
+        "themes",
     },
 }

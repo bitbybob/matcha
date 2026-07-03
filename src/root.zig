@@ -15,7 +15,7 @@ test "root cli module exposes placeholder version" {
 test "root imports CLI modules without dependency cycles" {
     const std = @import("std");
 
-    try std.testing.expectEqualStrings("map.css", assets.assetName(.map_css));
+    try std.testing.expectEqualStrings("map.css", assets.map_css.name);
     try std.testing.expect(path.hasParentDirectory("dist/map.html"));
     try std.testing.expectEqualStrings("sample_map.json", render_html.defaultInput(.map));
     try std.testing.expectEqualStrings("# ", render_markdown.headingPrefix(.plan));

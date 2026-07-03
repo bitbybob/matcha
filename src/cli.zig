@@ -27,7 +27,7 @@ pub fn writeVersion(writer: *std.Io.Writer) std.Io.Writer.Error!void {
 }
 
 test "command module imports all CLI responsibility modules" {
-    try std.testing.expectEqualStrings("plan.js", assets.assetName(.plan_js));
+    try std.testing.expectEqualStrings("plan.js", assets.plan_js.name);
     try std.testing.expect(path.isHomeRelative("~/sample_plan.json"));
     try std.testing.expectEqualStrings("dist/plan.html", render_html.defaultOutput(.plan));
     try std.testing.expectEqualStrings("# ", render_markdown.headingPrefix(.plan));
