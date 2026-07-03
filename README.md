@@ -1,4 +1,4 @@
-# matcha 🍵
+# Matcha 🍵
 
 Matcha is is a finely ground powder of green tea specially processed from shade-grown tea leaves but its also a CLI.
 The Matcha CLI lets your agent output static artifacts like a plan or a map, without having to worry about semi-functional / semi-broken vibe coded UIs.

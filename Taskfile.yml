@@ -51,10 +51,27 @@ tasks:
       - npm run build
 
   build:
-    desc: Compile the CLI into an executable
+    desc: Compile the Deno CLI into an executable
     cmds:
       - mkdir -p dist
       - deno compile --allow-read --allow-write --allow-env=HOME,USERPROFILE --include plan.js --include plan.css --include plan-components.css --include map.js --include map.css --include themes --include llm_output_format.txt --include llm_uml_output_format.txt --output {{.OUT}} src/main.ts
+
+  zig-build:
+    desc: Build the Zig CLI development executable
+    cmds:
+      - zig build
+
+  zig-release:
+    desc: Build the Zig CLI release executable
+    cmds:
+      - zig build release
+      - mkdir -p dist
+      - cp zig-out/bin/matcha-release {{.OUT}}
+
+  zig-test:
+    desc: Run Zig tests
+    cmds:
+      - zig build test
 
   install:
     desc: Install the compiled CLI to ~/.local/bin

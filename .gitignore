@@ -4,6 +4,10 @@
 .deno/
 coverage/
 
+# Zig
+.zig-cache/
+zig-out/
+
 # Node/Svelte client
 node_modules/
 client/node_modules/
