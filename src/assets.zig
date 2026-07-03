@@ -13,37 +13,37 @@ pub const ThemeAsset = struct {
 
 pub const plan_js: TextAsset = .{
     .name = "plan.js",
-    .contents = @embedFile("plan.js"),
+    .contents = @embedFile("../plan.js"),
 };
 
 pub const plan_css: TextAsset = .{
     .name = "plan.css",
-    .contents = @embedFile("plan.css"),
+    .contents = @embedFile("../plan.css"),
 };
 
 pub const plan_components_css: TextAsset = .{
     .name = "plan-components.css",
-    .contents = @embedFile("plan-components.css"),
+    .contents = @embedFile("../plan-components.css"),
 };
 
 pub const map_js: TextAsset = .{
     .name = "map.js",
-    .contents = @embedFile("map.js"),
+    .contents = @embedFile("../map.js"),
 };
 
 pub const map_css: TextAsset = .{
     .name = "map.css",
-    .contents = @embedFile("map.css"),
+    .contents = @embedFile("../map.css"),
 };
 
 pub const llm_output_format: TextAsset = .{
     .name = "llm_output_format.txt",
-    .contents = @embedFile("llm_output_format.txt"),
+    .contents = @embedFile("../llm_output_format.txt"),
 };
 
 pub const llm_uml_output_format: TextAsset = .{
     .name = "llm_uml_output_format.txt",
-    .contents = @embedFile("llm_uml_output_format.txt"),
+    .contents = @embedFile("../llm_uml_output_format.txt"),
 };
 
 pub const required_assets = [_]TextAsset{
@@ -118,7 +118,7 @@ fn theme(comptime name: []const u8) ThemeAsset {
     return .{
         .name = name,
         .path = "themes/" ++ name ++ ".css",
-        .css = @embedFile("themes/" ++ name ++ ".css"),
+        .css = @embedFile("../themes/" ++ name ++ ".css"),
     };
 }
 
