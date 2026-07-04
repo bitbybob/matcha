@@ -1,13 +1,65 @@
 const std = @import("std");
 
+pub const PathError = error{
+    MissingHome,
+};
+
 pub fn isHomeRelative(input: []const u8) bool {
     return std.mem.eql(u8, input, "~") or
         std.mem.startsWith(u8, input, "~/") or
         std.mem.startsWith(u8, input, "~\\");
 }
 
+pub fn expandHomePath(
+    allocator: std.mem.Allocator,
+    input: []const u8,
+) (std.mem.Allocator.Error || PathError)![]const u8 {
+    if (!isHomeRelative(input)) {
+        return input;
+    }
+
+    const home = getHome(allocator) catch {
+        return error.MissingHome;
+    };
+    if (input.len == 1) {
+        return home;
+    }
+
+    const buffer = try allocator.alloc(u8, home.len + input.len - 1);
+    std.mem.copyForwards(u8, buffer[0..home.len], home);
+    std.mem.copyForwards(u8, buffer[home.len..], input[1..]);
+
+    return buffer;
+}
+
 pub fn hasParentDirectory(input: []const u8) bool {
     return std.mem.lastIndexOfAny(u8, input, "/\\") != null;
+}
+
+pub fn parentDirectory(input: []const u8) ?[]const u8 {
+    const index = std.mem.lastIndexOfAny(u8, input, "/\\") orelse return null;
+    if (index == 0) return null;
+    return input[0..index];
+}
+
+fn getHome(allocator: std.mem.Allocator) PathError![]const u8 {
+    const home: ?[]const u8 = std.process.getEnvVarOwned(allocator, "HOME") catch |err| switch (err) {
+        error.EnvironmentVariableNotFound => null,
+        else => return error.MissingHome,
+    };
+    if (home) |value| {
+        return value;
+    }
+
+    const user_profile: ?[]const u8 = std.process.getEnvVarOwned(allocator, "USERPROFILE") catch |err| switch (err) {
+        error.EnvironmentVariableNotFound => null,
+        else => return error.MissingHome,
+    };
+    if (user_profile) |value| {
+        return value;
+    }
+
+    return error.MissingHome;
 }
 
 test "detects home-relative paths" {
@@ -16,7 +68,20 @@ test "detects home-relative paths" {
     try std.testing.expect(!isHomeRelative("/tmp/input.json"));
 }
 
+test "expands home path with HOME when available" {
+    const home = getHome(std.testing.allocator) catch return;
+    defer std.testing.allocator.free(home);
+    const expanded = try expandHomePath(std.testing.allocator, "~/plans/input.json");
+    defer std.testing.allocator.free(expanded);
+    try std.testing.expectEqualStrings(home ++ "/plans/input.json", expanded);
+}
+
 test "detects parent directories" {
     try std.testing.expect(hasParentDirectory("dist/plan.html"));
     try std.testing.expect(!hasParentDirectory("plan.html"));
+}
+
+test "extracts parent directory for both separator styles" {
+    try std.testing.expectEqualStrings("dist", parentDirectory("dist/plan.html").?);
+    try std.testing.expectEqualStrings("out\\nested", parentDirectory("out\\nested\\plan.html").?);
 }

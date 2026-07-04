@@ -22,6 +22,8 @@ pub const RenderOptions = struct {
 pub const CliError = union(enum) {
     missing_value: []const u8,
     unknown_option: []const u8,
+    missing_home: []const u8,
+    path_error: []const u8,
 };
 
 pub const RenderOptionsResult = union(enum) {
@@ -112,7 +114,15 @@ fn runRenderCommand(
         return .ok;
     }
 
-    switch (parseRenderOptions(target, args)) {
+    var options: RenderOptions = switch (parseRenderOptions(target, args)) {
+        .ok => |parsed| parsed,
+        .err => |cli_error| {
+            try writeCliError(stderr, cli_error);
+            return .usage;
+        },
+    };
+
+    switch (normalizeRenderPaths(std.heap.page_allocator, &options)) {
         .ok => {},
         .err => |cli_error| {
             try writeCliError(stderr, cli_error);
@@ -120,8 +130,40 @@ fn runRenderCommand(
         },
     }
 
+    if (!prepareOutputDirectory(stderr, options.output)) {
+        return .failure;
+    }
+
     try stderr.print("Rendering {s} is not implemented in the Zig CLI yet\n", .{renderTargetName(target)});
     return .failure;
+}
+
+fn normalizeRenderPaths(allocator: std.mem.Allocator, options: *RenderOptions) RenderOptionsResult {
+    options.input = path.expandHomePath(allocator, options.input) catch |err| {
+        switch (err) {
+            error.MissingHome => return RenderOptionsResult{ .err = .{ .missing_home = options.input } },
+            else => return RenderOptionsResult{ .err = .{ .path_error = options.input } },
+        }
+    };
+    options.output = path.expandHomePath(allocator, options.output) catch |err| {
+        switch (err) {
+            error.MissingHome => return RenderOptionsResult{ .err = .{ .missing_home = options.output } },
+            else => return RenderOptionsResult{ .err = .{ .path_error = options.output } },
+        }
+    };
+    return RenderOptionsResult{ .ok = options.* };
+}
+
+fn prepareOutputDirectory(stderr: *std.Io.Writer, output: []const u8) bool {
+    const output_parent = path.parentDirectory(output) orelse return true;
+    std.fs.cwd().makePath(output_parent) catch |err| {
+        stderr.print("Cannot create output directory {s}: {s}\n", .{
+            output_parent,
+            @errorName(err),
+        }) catch return false;
+        return false;
+    };
+    return true;
 }
 
 pub fn parseRenderOptions(target: render_html.RenderTarget, args: []const []const u8) RenderOptionsResult {
@@ -175,6 +217,8 @@ fn writeCliError(writer: *std.Io.Writer, cli_error: CliError) std.Io.Writer.Erro
     switch (cli_error) {
         .missing_value => |flag| try writer.print("Missing value for {s}\n", .{flag}),
         .unknown_option => |option| try writer.print("Unknown option: {s}\n", .{option}),
+        .missing_home => |value| try writer.print("Cannot expand {s}: HOME and USERPROFILE are not set\n", .{value}),
+        .path_error => |value| try writer.print("Cannot process path: {s}\n", .{value}),
     }
 }
 
