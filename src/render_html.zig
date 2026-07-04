@@ -63,6 +63,24 @@ pub fn writePlanHtml(io: std.Io, output_path: []const u8, title: []const u8, pay
 }
 
 pub fn writeMapHtml(io: std.Io, output_path: []const u8, title: []const u8, payload: []const u8) !void {
+    try writeMapHtmlWithAssets(
+        io,
+        output_path,
+        title,
+        payload,
+        assets.optionalMapCss(),
+        assets.optionalMapJs(),
+    );
+}
+
+fn writeMapHtmlWithAssets(
+    io: std.Io,
+    output_path: []const u8,
+    title: []const u8,
+    payload: []const u8,
+    map_css: ?*const assets.TextAsset,
+    map_js: ?*const assets.TextAsset,
+) !void {
     const file = try std.Io.Dir.cwd().createFile(io, output_path, .{ .truncate = true });
     defer file.close(io);
 
@@ -81,9 +99,13 @@ pub fn writeMapHtml(io: std.Io, output_path: []const u8, title: []const u8, payl
         try file.writeStreamingAll(io, "\n");
     }
     try file.writeStreamingAll(io, "</style>\n");
-    try file.writeStreamingAll(io, "  <style>");
-    try writeStyle(io, file, &assets.map_css);
-    try file.writeStreamingAll(io, "</style>\n");
+    if (map_css) |css| {
+        if (css.contents.len > 0) {
+            try file.writeStreamingAll(io, "  <style>");
+            try writeStyle(io, file, css);
+            try file.writeStreamingAll(io, "</style>\n");
+        }
+    }
     try file.writeStreamingAll(io, "</head>\n");
 
     try file.writeStreamingAll(io, "<body>\n");
@@ -94,7 +116,11 @@ pub fn writeMapHtml(io: std.Io, output_path: []const u8, title: []const u8, payl
     try file.writeStreamingAll(io, "  <script>\n");
     try file.writeStreamingAll(io, "    window.MAP_DATA = JSON.parse(document.getElementById(\"map-data\").textContent);\n");
     try file.writeStreamingAll(io, "    ;\n");
-    try file.writeStreamingAll(io, assets.map_js.contents);
+    if (map_js) |js| {
+        if (js.contents.len > 0) {
+            try file.writeStreamingAll(io, js.contents);
+        }
+    }
     try file.writeStreamingAll(io, "\n  </script>\n");
     try file.writeStreamingAll(io, "</body>\n");
     try file.writeStreamingAll(io, "</html>\n");
@@ -226,4 +252,85 @@ test "map HTML render emits required markers and title" {
     try std.testing.expect(std.mem.indexOf(u8, html, "<div id=\"map-root\"></div>") != null);
     try std.testing.expect(std.mem.indexOf(u8, html, "id=\"map-data\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, html, "window.MAP_DATA") != null);
+}
+
+test "map HTML renderer escapes script-like JSON" {
+    const allocator = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const output_path = try std.fmt.allocPrint(allocator, "{s}/map.html", .{tmp.dir.path.?});
+    defer allocator.free(output_path);
+
+    try writeMapHtml(
+        std.testing.io,
+        output_path,
+        "Scripty Map",
+        "{\"title\":\"</script><script>alert(1)</script>\",\"kind\":\"class\"}",
+    );
+
+    var file = try tmp.dir.openFile("map.html", .{});
+    defer file.close();
+
+    const html = try file.readToEndAlloc(allocator, 1024 * 1024);
+    defer allocator.free(html);
+
+    try std.testing.expect(std.mem.indexOf(u8, html, "\\u003c/script\\u003e\\u003cscript\\u003ealert(1)\\u003c/script\\u003e") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "<script>alert(1)</script>") == null);
+}
+
+test "map renderer supports optional map assets" {
+    const allocator = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const output_path = try std.fmt.allocPrint(allocator, "{s}/map.html", .{tmp.dir.path.?});
+    defer allocator.free(output_path);
+
+    const css_fixture = assets.TextAsset{
+        .name = "map-fixture.css",
+        .contents = ".fixture-map-style { color: red; }",
+    };
+    const js_fixture = assets.TextAsset{
+        .name = "map-fixture.js",
+        .contents = "window.__MATCHA_MAP_FIXTURE__ = true;",
+    };
+
+    try writeMapHtmlWithAssets(
+        std.testing.io,
+        output_path,
+        "Optional Asset Map",
+        "{\"title\":\"Optional Asset Map\",\"kind\":\"class\"}",
+        &css_fixture,
+        &js_fixture,
+    );
+
+    var file = try tmp.dir.openFile("map.html", .{});
+    defer file.close();
+
+    const with_fixture = try file.readToEndAlloc(allocator, 1024 * 1024);
+    defer allocator.free(with_fixture);
+
+    try std.testing.expect(std.mem.indexOf(u8, with_fixture, "window.__MATCHA_MAP_FIXTURE__ = true;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, with_fixture, ".fixture-map-style { color: red; }") != null);
+
+    try writeMapHtmlWithAssets(
+        std.testing.io,
+        output_path,
+        "Optional Asset Map",
+        "{\"title\":\"Optional Asset Map\",\"kind\":\"class\"}",
+        null,
+        null,
+    );
+
+    file = try tmp.dir.openFile("map.html", .{});
+    const without_fixture = try file.readToEndAlloc(allocator, 1024 * 1024);
+    defer allocator.free(without_fixture);
+
+    try std.testing.expect(std.mem.indexOf(u8, without_fixture, ".fixture-map-style { color: red; }") == null);
+    try std.testing.expect(std.mem.indexOf(u8, without_fixture, "window.__MATCHA_MAP_FIXTURE__ = true;") == null);
+    try std.testing.expect(std.mem.indexOf(u8, without_fixture, ".map-viewport.svelte-o9f9lq") == null);
+    try std.testing.expect(std.mem.indexOf(u8, without_fixture, "window.__svelte") == null);
 }

@@ -97,6 +97,22 @@ pub fn themeByName(name: []const u8) ?ThemeAsset {
     return null;
 }
 
+pub fn optionalMapCss() ?*const TextAsset {
+    if (map_css.contents.len == 0) {
+        return null;
+    }
+
+    return &map_css;
+}
+
+pub fn optionalMapJs() ?*const TextAsset {
+    if (map_js.contents.len == 0) {
+        return null;
+    }
+
+    return &map_js;
+}
+
 pub fn writeThemeCss(writer: *std.Io.Writer) std.Io.Writer.Error!void {
     for (themes) |theme_asset| {
         try writer.writeAll(theme_asset.css);
