@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo="${MATCHA_REPO:-https://github.com/bitbybob/matcha}"
+ref="${MATCHA_REF:-main}"
+install_dir="${MATCHA_INSTALL_DIR:-$HOME/.local/bin}"
+
+need() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    printf 'matcha setup: missing required command: %s\n' "$1" >&2
+    exit 1
+  fi
+}
+
+need curl
+need tar
+need zig
+need install
+
+tmp_dir="$(mktemp -d)"
+cleanup() {
+  rm -rf "$tmp_dir"
+}
+trap cleanup EXIT
+
+archive_url="${repo%/}/archive/${ref}.tar.gz"
+
+printf 'Downloading matcha from %s...\n' "$archive_url"
+curl -fsSL "$archive_url" | tar -xz -C "$tmp_dir" --strip-components 1
+
+printf 'Building matcha...\n'
+cd "$tmp_dir"
+if [ ! -s plan.js ] || [ ! -s map.js ]; then
+  need npm
+  printf 'Building bundled client assets...\n'
+  npm --prefix client ci
+  npm --prefix client run build
+fi
+zig build release
+
+mkdir -p "$install_dir"
+install -m 755 zig-out/bin/matcha-release "$install_dir/matcha"
+
+printf 'Installed matcha to %s\n' "$install_dir/matcha"
+case ":$PATH:" in
+  *":$install_dir:"*) ;;
+  *) printf 'Add %s to your PATH to run matcha from any shell.\n' "$install_dir" ;;
+esac

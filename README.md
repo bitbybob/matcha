@@ -6,6 +6,15 @@ Furthermore matcha lets you escape the markdown flavoured hellscape that interac
 
 tl;dr: Matcha turns agentic output into human friendly plans & maps.
 
+## Install
+
+```sh
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/bitbybob/matcha/main/scripts/setup)"
+```
+
+This installs `matcha` to `~/.local/bin`. Set `MATCHA_INSTALL_DIR` to choose a different directory.
+It builds from source and expects `zig`, `node`, and `npm` to be available.
+
 ## Build and Run
 
 Matcha is now a Zig CLI. Use `task` for day-to-day operations:
