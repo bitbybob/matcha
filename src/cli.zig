@@ -71,7 +71,7 @@ pub fn runArgs(args: []const []const u8, io: std.Io, stdout: *std.Io.Writer, std
 
     if (std.mem.eql(u8, command, "plan")) {
         if (args.len > 1 and std.mem.eql(u8, args[1], "read")) {
-            return runPlanReadCommand(io, args[1..], stdout, stderr);
+            return runPlanReadCommand(io, args[2..], stdout, stderr);
         }
         return runRenderCommand(.plan, io, args[1..], stdout, stderr);
     }
