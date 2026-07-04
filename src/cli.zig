@@ -3,6 +3,7 @@ const std = @import("std");
 const assets = @import("assets.zig");
 const errors = @import("errors.zig");
 const path = @import("path.zig");
+const json_input = @import("json_input.zig");
 const render_html = @import("render_html.zig");
 const render_markdown = @import("render_markdown.zig");
 
@@ -22,11 +23,6 @@ pub const RenderOptions = struct {
 
 pub const RenderOptionsResult = union(enum) {
     ok: RenderOptions,
-    err: errors.CliError,
-};
-
-const InputValidationResult = union(enum) {
-    ok,
     err: errors.CliError,
 };
 
@@ -137,15 +133,21 @@ fn runRenderCommand(
         return .failure;
     }
 
-    switch (validateInputDocument(io, std.heap.page_allocator, options.input)) {
-        .ok => {},
-        .err => |cli_error| {
-            try writeCliError(stderr, cli_error);
-            return .failure;
-        },
-    }
+    var document = json_input.readJsonDocument(io, std.heap.page_allocator, options.input) catch |err| {
+        const cli_error: errors.CliError = switch (err) {
+            json_input.DocumentParseError.CannotReadInput => .{ .cannot_read_input = options.input },
+            json_input.DocumentParseError.InvalidJson => .{ .invalid_json = options.input },
+            json_input.DocumentParseError.OutOfMemory => return error.OutOfMemory,
+        };
+        try writeCliError(stderr, cli_error);
+        return .failure;
+    };
+    defer document.deinit();
 
-    try writePlaceholderOutput(io, options.output);
+    switch (target) {
+        .plan => try render_html.writePlanHtml(io, options.output, document.title, document.raw),
+        .map => try render_html.writeMapHtml(io, options.output, document.title, document.raw),
+    }
     try stdout.print("Wrote {s}\n", .{options.output});
     return .ok;
 }
@@ -176,29 +178,6 @@ fn prepareOutputDirectory(io: std.Io, stderr: *std.Io.Writer, output: []const u8
         return false;
     };
     return true;
-}
-
-fn validateInputDocument(io: std.Io, allocator: std.mem.Allocator, input_path: []const u8) InputValidationResult {
-    const input = std.Io.Dir.cwd().readFileAlloc(io, input_path, allocator, .limited(16 * 1024 * 1024)) catch {
-        return .{ .err = .{ .cannot_read_input = input_path } };
-    };
-    defer allocator.free(input);
-
-    var arena = std.heap.ArenaAllocator.init(allocator);
-    defer arena.deinit();
-
-    const parsed = std.json.parseFromSlice(std.json.Value, arena.allocator(), input, .{}) catch {
-        return .{ .err = .{ .invalid_json = input_path } };
-    };
-    defer parsed.deinit();
-
-    return .ok;
-}
-
-fn writePlaceholderOutput(io: std.Io, output_path: []const u8) !void {
-    const file = try std.Io.Dir.cwd().createFile(io, output_path, .{ .truncate = true });
-    defer file.close(io);
-    try file.writeStreamingAll(io, "<!doctype html>\n");
 }
 
 pub fn parseRenderOptions(target: render_html.RenderTarget, args: []const []const u8) RenderOptionsResult {
