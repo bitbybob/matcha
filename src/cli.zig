@@ -192,7 +192,18 @@ fn runPlanReadCommand(
     };
     defer document.deinit();
 
-    try stdout.print("{s}\n", .{document.raw});
+    const markdown = try render_markdown.renderPlanMarkdown(std.heap.page_allocator, document.data) catch |err| switch (err) {
+        render_markdown.RenderError.NotAnObject => {
+            try stderr.print("Invalid plan document: expected JSON object\n", .{});
+            return .failure;
+        },
+        error.OutOfMemory => {
+            return .failure;
+        },
+    };
+    defer std.heap.page_allocator.free(markdown);
+
+    try stdout.print("{s}\n", .{markdown});
     return .ok;
 }
 
@@ -533,7 +544,8 @@ test "plan read accepts raw JSON input path" {
     const output = stdout_buffer[0..stdout.end];
 
     try std.testing.expectEqual(ExitCode.ok, code);
-    try std.testing.expect(std.mem.indexOf(u8, output, "\"title\":\"Raw JSON Plan\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "# Raw JSON Plan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "- **Schema Version:** 1") != null);
     try std.testing.expectEqual(@as(usize, 0), stderr.end);
 }
 
@@ -543,8 +555,7 @@ test "plan read accepts generated plan HTML input path" {
 
     const input_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/plan.html", .{tmp.dir.path.?});
     defer std.testing.allocator.free(input_path);
-    try tmp.dir.writeFile(
-        "plan.html",
+    try tmp.dir.writeFile("plan.html",
         \\<html><body>
         \\  <script type="application/json" id="plan-data">
         \\    {"title":"HTML Fixture","schemaVersion":1}
@@ -561,7 +572,7 @@ test "plan read accepts generated plan HTML input path" {
     const output = stdout_buffer[0..stdout.end];
 
     try std.testing.expectEqual(ExitCode.ok, code);
-    try std.testing.expect(std.mem.indexOf(u8, output, "\"title\":\"HTML Fixture\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "# HTML Fixture") != null);
     try std.testing.expectEqual(@as(usize, 0), stderr.end);
 }
 
