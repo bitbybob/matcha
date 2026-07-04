@@ -197,6 +197,7 @@ test "plan HTML render emits required markers and title" {
     try std.testing.expect(std.mem.indexOf(u8, html, "<main id=\"content-area\"></main>") != null);
     try std.testing.expect(std.mem.indexOf(u8, html, "id=\"plan-data\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, html, "window.PLAN_DATA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "matcha-plan-theme") != null);
     try std.testing.expect(std.mem.indexOf(u8, html, "\"extra_field\":\"kept\"") != null);
 }
 
@@ -252,6 +253,7 @@ test "map HTML render emits required markers and title" {
     try std.testing.expect(std.mem.indexOf(u8, html, "<div id=\"map-root\"></div>") != null);
     try std.testing.expect(std.mem.indexOf(u8, html, "id=\"map-data\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, html, "window.MAP_DATA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "matcha-map-theme") != null);
 }
 
 test "map HTML renderer escapes script-like JSON" {

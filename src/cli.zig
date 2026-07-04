@@ -605,6 +605,164 @@ test "runArgs reports invalid JSON as user-facing errors" {
     try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], invalid_input) != null);
 }
 
+test "runArgs uses default plan path contract in temporary working directory" {
+    const allocator = std.testing.allocator;
+
+    const original_cwd = try std.process.currentPathAlloc(std.testing.io, allocator);
+    defer allocator.free(original_cwd);
+
+    const sample_plan_path = try std.fmt.allocPrint(allocator, "{s}/sample_plan.json", .{original_cwd});
+    defer allocator.free(sample_plan_path);
+    const sample_plan = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        sample_plan_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
+    defer allocator.free(sample_plan);
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const tmp_path = try std.fmt.allocPrint(allocator, "{s}", .{tmp.dir.path.?});
+    defer allocator.free(tmp_path);
+
+    try tmp.dir.writeFile("sample_plan.json", sample_plan);
+    defer _ = std.Io.chdir(original_cwd) catch {};
+    try std.Io.chdir(tmp_path);
+
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [64]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{"plan"}, std.testing.io, &stdout, &stderr);
+    const output = stdout_buffer[0..stdout.end];
+
+    try std.testing.expectEqual(ExitCode.ok, code);
+    try std.testing.expect(std.mem.indexOf(u8, output, "Wrote dist/plan.html") != null);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+
+    var file = try std.Io.Dir.cwd().openFile("dist/plan.html", .{});
+    defer file.close();
+    const html = try file.readToEndAlloc(allocator, 1024 * 1024);
+    defer allocator.free(html);
+
+    try std.testing.expect(std.mem.indexOf(u8, html, "<title>SwiftUI Calculator Implementation Plan</title>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "id=\"plan-data\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "window.PLAN_DATA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "matcha-plan-theme") != null);
+}
+
+test "runArgs uses default map path contract in temporary working directory" {
+    const allocator = std.testing.allocator;
+
+    const original_cwd = try std.process.currentPathAlloc(std.testing.io, allocator);
+    defer allocator.free(original_cwd);
+
+    const sample_map_path = try std.fmt.allocPrint(allocator, "{s}/sample_map.json", .{original_cwd});
+    defer allocator.free(sample_map_path);
+    const sample_map = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        sample_map_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
+    defer allocator.free(sample_map);
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const tmp_path = try std.fmt.allocPrint(allocator, "{s}", .{tmp.dir.path.?});
+    defer allocator.free(tmp_path);
+
+    try tmp.dir.writeFile("sample_map.json", sample_map);
+    defer _ = std.Io.chdir(original_cwd) catch {};
+    try std.Io.chdir(tmp_path);
+
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [64]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{"map"}, std.testing.io, &stdout, &stderr);
+    const output = stdout_buffer[0..stdout.end];
+
+    try std.testing.expectEqual(ExitCode.ok, code);
+    try std.testing.expect(std.mem.indexOf(u8, output, "Wrote dist/map.html") != null);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+
+    var file = try std.Io.Dir.cwd().openFile("dist/map.html", .{});
+    defer file.close();
+    const html = try file.readToEndAlloc(allocator, 1024 * 1024);
+    defer allocator.free(html);
+
+    try std.testing.expect(std.mem.indexOf(u8, html, "<title>Matcha Plan And Map Renderer</title>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "id=\"map-data\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "window.MAP_DATA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, html, "matcha-map-theme") != null);
+}
+
+test "runArgs explicit input/output paths for plan and map write expected HTML markers" {
+    const allocator = std.testing.allocator;
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const root = tmp.dir.path.?;
+    const plan_input = try std.fmt.allocPrint(allocator, "{s}/plan-input.json", .{root});
+    defer allocator.free(plan_input);
+    const plan_output = try std.fmt.allocPrint(allocator, "{s}/nested/plan-output.html", .{root});
+    defer allocator.free(plan_output);
+    const map_input = try std.fmt.allocPrint(allocator, "{s}/map-input.json", .{root});
+    defer allocator.free(map_input);
+    const map_output = try std.fmt.allocPrint(allocator, "{s}/nested/map-output.html", .{root});
+    defer allocator.free(map_output);
+
+    const plan_input_file = try tmp.dir.createFile("plan-input.json", .{ .truncate = true });
+    defer plan_input_file.close();
+    try plan_input_file.writeAll("{\"title\":\"Plan Explicit Fixture\",\"schemaVersion\":1}\n");
+
+    const map_input_file = try tmp.dir.createFile("map-input.json", .{ .truncate = true });
+    defer map_input_file.close();
+    try map_input_file.writeAll("{\"title\":\"Map Explicit Fixture\",\"schemaVersion\":1,\"diagramKind\":\"mixed\"}\n");
+
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [64]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const plan_code = try runArgs(&.{ "plan", "--input", plan_input, "--output", plan_output }, std.testing.io, &stdout, &stderr);
+    try std.testing.expectEqual(ExitCode.ok, plan_code);
+    try std.testing.expect(std.mem.indexOf(u8, stdout_buffer[0..stdout.end], "Wrote " ++ plan_output) != null);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+
+    const plan_file = try std.Io.Dir.openFileAbsolute(std.testing.io, plan_output, .{});
+    defer plan_file.close();
+    const plan_html = try plan_file.readToEndAlloc(allocator, 1024 * 1024);
+    defer allocator.free(plan_html);
+    try std.testing.expect(std.mem.indexOf(u8, plan_html, "<title>Plan Explicit Fixture</title>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, plan_html, "id=\"sidebar\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, plan_html, "window.PLAN_DATA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, plan_html, "matcha-plan-theme") != null);
+
+    stdout = .fixed(&stdout_buffer);
+    stderr = .fixed(&stderr_buffer);
+    const map_code = try runArgs(&.{ "map", "--input", map_input, "--output", map_output }, std.testing.io, &stdout, &stderr);
+    try std.testing.expectEqual(ExitCode.ok, map_code);
+    try std.testing.expect(std.mem.indexOf(u8, stdout_buffer[0..stdout.end], "Wrote " ++ map_output) != null);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+
+    const map_file = try std.Io.Dir.openFileAbsolute(std.testing.io, map_output, .{});
+    defer map_file.close();
+    const map_html = try map_file.readToEndAlloc(allocator, 1024 * 1024);
+    defer allocator.free(map_html);
+    try std.testing.expect(std.mem.indexOf(u8, map_html, "<title>Map Explicit Fixture</title>") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map_html, "id=\"map-root\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map_html, "window.MAP_DATA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map_html, "matcha-map-theme") != null);
+}
+
 fn expectRenderOptions(result: RenderOptionsResult) RenderOptions {
     return switch (result) {
         .ok => |options| options,
