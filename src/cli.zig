@@ -618,6 +618,90 @@ test "plan read rejects unsupported non-json non-plan-html input" {
     try std.testing.expectEqual(@as(usize, 0), stdout.end);
 }
 
+test "plan read rejects flag-like arguments" {
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "read", "--output", "ignored.md" }, std.testing.io, &stdout, &stderr);
+
+    try std.testing.expectEqual(ExitCode.usage, code);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], "Usage: matcha plan read <path>") != null);
+    try std.testing.expectEqual(@as(usize, 0), stdout.end);
+}
+
+test "plan read fixture output is stable and stdout-only" {
+    const allocator = std.testing.allocator;
+
+    const cwd = try std.process.currentPathAlloc(std.testing.io, allocator);
+    defer allocator.free(cwd);
+
+    const sample_plan_path = try std.fmt.allocPrint(allocator, "{s}/sample_plan.json", .{cwd});
+    defer allocator.free(sample_plan_path);
+
+    const expected_path = try std.fmt.allocPrint(allocator, "{s}/testdata/sample_plan.md", .{cwd});
+    defer allocator.free(expected_path);
+
+    const expected_markdown = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        expected_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
+    defer allocator.free(expected_markdown);
+
+    const plan_contents = try std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        sample_plan_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
+    defer allocator.free(plan_contents);
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const input_path = try std.fmt.allocPrint(allocator, "{s}/sample_plan.json", .{tmp.dir.path.?});
+    defer allocator.free(input_path);
+    try tmp.dir.writeFile("sample_plan.json", plan_contents);
+
+    var start_count: usize = 0;
+    var initial_entry_iterator = tmp.dir.iterate();
+    while (try initial_entry_iterator.next()) |_| {
+        start_count += 1;
+    }
+
+    var stdout_buffer: [131072]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    try std.testing.expect(expected_markdown.len < stdout_buffer.len);
+
+    const first_code = try runArgs(&.{ "plan", "read", input_path }, std.testing.io, &stdout, &stderr);
+    const first_output = stdout_buffer[0..stdout.end];
+    try std.testing.expectEqual(ExitCode.ok, first_code);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+    try std.testing.expectEqualStrings(expected_markdown, first_output);
+
+    stdout.end = 0;
+    stderr.end = 0;
+    const second_code = try runArgs(&.{ "plan", "read", input_path }, std.testing.io, &stdout, &stderr);
+    const second_output = stdout_buffer[0..stdout.end];
+    try std.testing.expectEqual(ExitCode.ok, second_code);
+    try std.testing.expectEqualStrings(first_output, second_output);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+
+    var final_entry_iterator = tmp.dir.iterate();
+    var final_count: usize = 0;
+    while (try final_entry_iterator.next()) |_| {
+        final_count += 1;
+    }
+
+    try std.testing.expectEqual(start_count, final_count);
+}
+
 test "render command rejects missing flag values" {
     try expectMissingValue("-i", parseRenderOptions(.plan, &.{"-i"}));
     try expectMissingValue("--input", parseRenderOptions(.plan, &.{ "--input", "--output", "dist/plan.html" }));

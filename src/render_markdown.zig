@@ -25,7 +25,45 @@ pub fn renderPlanMarkdown(allocator: std.mem.Allocator, plan_value: std.json.Val
     try writer.writeLine("");
 
     const raw = try out.toOwnedSlice(allocator);
-    return raw;
+    defer allocator.free(raw);
+    return normalizeBlankLines(allocator, raw);
+}
+
+fn normalizeBlankLines(allocator: std.mem.Allocator, input: []const u8) ![]const u8 {
+    var normalized = try std.ArrayList(u8).initCapacity(allocator, input.len);
+    defer normalized.deinit(allocator);
+
+    var consecutive_newlines: usize = 0;
+    for (input) |character| {
+        if (character == '\n') {
+            consecutive_newlines += 1;
+            continue;
+        }
+
+        const emit_count = if (consecutive_newlines > 2) 2 else consecutive_newlines;
+        if (consecutive_newlines > 0) {
+            for (0..emit_count) |_| {
+                try normalized.append(allocator, '\n');
+            }
+            consecutive_newlines = 0;
+        }
+
+        try normalized.append(allocator, character);
+    }
+
+    if (consecutive_newlines > 0) {
+        const emit_count = if (consecutive_newlines > 2) 2 else consecutive_newlines;
+        for (0..emit_count) |_| {
+            try normalized.append(allocator, '\n');
+        }
+    }
+
+    while (normalized.items.len > 0 and normalized.items[normalized.items.len - 1] == '\n') {
+        normalized.items.len -= 1;
+    }
+    try normalized.append(allocator, '\n');
+
+    return try normalized.toOwnedSlice(allocator);
 }
 
 const MarkdownWriter = struct {
@@ -949,6 +987,17 @@ test "renders minimal plan and top-level fields" {
     try std.testing.expect(std.mem.indexOf(u8, markdown, "- **Plan ID:** minimal") != null);
     try std.testing.expect(std.mem.indexOf(u8, markdown, "- **Schema Version:** 1") != null);
     try std.testing.expect(std.mem.indexOf(u8, markdown, "\n\n\n") == null);
+}
+
+test "normalizes excessive blank lines and trailing newline" {
+    const allocator = std.testing.allocator;
+    const normalized = try normalizeBlankLines(
+        allocator,
+        "# Title\n\n\n\nSection\n\n\n\n\n\n\nEnd\n\n\n\n",
+    );
+    defer allocator.free(normalized);
+
+    try std.testing.expectEqualStrings("# Title\n\nSection\n\nEnd\n", normalized);
 }
 
 test "renders metadata key order deterministically" {

@@ -144,7 +144,7 @@ fn extractPlanDataFromHtml(raw_input: []const u8) ?[]const u8 {
         return null;
     }
 
-    if (!std.mem.startsWith(u8, raw_input[tag_start.? ..], "<script")) {
+    if (!std.mem.startsWith(u8, raw_input[tag_start.?..], "<script")) {
         return null;
     }
 
@@ -220,6 +220,10 @@ test "rejects missing and extra plan read arguments" {
     try std.testing.expectError(
         PlanReadError.extra_arguments,
         parsePlanReadInput(std.testing.io, allocator, &.{ "one.json", "two.json" }),
+    );
+    try std.testing.expectError(
+        PlanReadError.invalid_argument,
+        parsePlanReadInput(std.testing.io, allocator, &.{"--output"}),
     );
 }
 
