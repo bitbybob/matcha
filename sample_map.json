@@ -5,13 +5,13 @@
   "project": "matcha",
   "diagramKind": "mixed",
   "status": "draft",
-  "scope": "Deno CLI and Svelte client architecture for rendering plan and UML map HTML artifacts.",
+  "scope": "Zig CLI and Svelte client architecture for rendering plan and UML map HTML artifacts.",
   "summary": [
     "The CLI reads structured JSON samples and emits standalone HTML files into dist. The plan path renders the existing plan browser, while the map path mounts a Svelte placeholder that will evolve into a JointJS-powered UML diagram.",
     "The map renderer is intentionally split between a semantic UML data contract and a client-side renderer so the LLM output format stays independent from JointJS cell internals."
   ],
   "metadata": {
-    "runtime": "Deno",
+    "runtime": "Zig",
     "frontend": "Svelte",
     "diagramLibrary": "JointJS",
     "outputs": ["dist/plan.html", "dist/map.html"]
