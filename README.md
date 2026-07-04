@@ -6,6 +6,27 @@ Furthermore matcha lets you escape the markdown flavoured hellscape that interac
 
 tl;dr: Matcha turns agentic output into human friendly plans & maps.
 
+## Build and Run
+
+Matcha is now a Zig CLI. Use `task` for day-to-day operations:
+
+```sh
+task run -- help
+task run-plan        # writes dist/plan.html from sample_plan.json
+task run-map         # writes dist/map.html from sample_map.json
+task test            # runs Zig unit tests
+task build           # builds dist/matcha
+```
+
+The Svelte/Vite client remains a separate npm build:
+
+```sh
+task build-client
+```
+
+`task build-client` produces `plan.js`, `plan.css`, `map.js`, and `map.css` at the repo root. The
+Zig CLI injects these assets when rendering HTML output.
+
 ## Usage
 
 ```sh
