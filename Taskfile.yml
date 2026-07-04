@@ -54,8 +54,8 @@ tasks:
     desc: Compile the CLI executable into dist
     cmds:
       - mkdir -p dist
-      - zig build
-      - cp -f zig-out/bin/matcha {{.OUT}}
+      - zig build release
+      - cp -f zig-out/bin/matcha-release {{.OUT}}
 
   install:
     desc: Install the compiled CLI to ~/.local/bin
