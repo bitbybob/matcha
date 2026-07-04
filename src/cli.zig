@@ -6,6 +6,7 @@ const path = @import("path.zig");
 const json_input = @import("json_input.zig");
 const render_html = @import("render_html.zig");
 const render_markdown = @import("render_markdown.zig");
+const plan_read = @import("plan_read.zig");
 
 pub const version = "0.1.0";
 
@@ -69,6 +70,9 @@ pub fn runArgs(args: []const []const u8, io: std.Io, stdout: *std.Io.Writer, std
     }
 
     if (std.mem.eql(u8, command, "plan")) {
+        if (args.len > 1 and std.mem.eql(u8, args[1], "read")) {
+            return runPlanReadCommand(io, args[1..], stdout, stderr);
+        }
         return runRenderCommand(.plan, io, args[1..], stdout, stderr);
     }
 
@@ -149,6 +153,46 @@ fn runRenderCommand(
         .map => try render_html.writeMapHtml(io, options.output, document.title, document.raw),
     }
     try stdout.print("Wrote {s}\n", .{options.output});
+    return .ok;
+}
+
+fn runPlanReadCommand(
+    io: std.Io,
+    args: []const []const u8,
+    stdout: *std.Io.Writer,
+    stderr: *std.Io.Writer,
+) !ExitCode {
+    var document = plan_read.parsePlanReadInput(io, std.heap.page_allocator, args) catch |err| {
+        switch (err) {
+            plan_read.PlanReadError.missing_path, plan_read.PlanReadError.extra_arguments, plan_read.PlanReadError.invalid_argument => {
+                try stderr.print("Usage: matcha plan read <path>\n", .{});
+                return .usage;
+            },
+            plan_read.PlanReadError.missing_home => {
+                try stderr.print("Cannot expand input path: HOME and USERPROFILE are not set\n", .{});
+                return .failure;
+            },
+            plan_read.PlanReadError.cannot_read_input => {
+                const input_path = if (args.len > 0) args[0] else "<path>";
+                try stderr.print("Cannot read {s}\n", .{input_path});
+                return .failure;
+            },
+            plan_read.PlanReadError.unsupported_input => {
+                try stderr.print("Unsupported input: {s}\n", .{if (args.len > 0) args[0] else "<path>"});
+                return .failure;
+            },
+            plan_read.PlanReadError.invalid_json => {
+                try stderr.print("Invalid JSON in {s}\n", .{if (args.len > 0) args[0] else "<path>"});
+                return .failure;
+            },
+            plan_read.PlanReadError.out_of_memory => {
+                return .failure;
+            },
+        }
+    };
+    defer document.deinit();
+
+    try stdout.print("{s}\n", .{document.raw});
     return .ok;
 }
 
@@ -470,6 +514,97 @@ test "render command parses equals-style input and output flags" {
     }));
     try std.testing.expectEqualStrings("maps/input.json", map_options.input);
     try std.testing.expectEqualStrings("dist/custom-map.html", map_options.output);
+}
+
+test "plan read accepts raw JSON input path" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const input_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/plan.json", .{tmp.dir.path.?});
+    defer std.testing.allocator.free(input_path);
+    try tmp.dir.writeFile("plan.json", "{\"title\":\"Raw JSON Plan\",\"schemaVersion\":1}\n");
+
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "read", input_path }, std.testing.io, &stdout, &stderr);
+    const output = stdout_buffer[0..stdout.end];
+
+    try std.testing.expectEqual(ExitCode.ok, code);
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"title\":\"Raw JSON Plan\"") != null);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+}
+
+test "plan read accepts generated plan HTML input path" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const input_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/plan.html", .{tmp.dir.path.?});
+    defer std.testing.allocator.free(input_path);
+    try tmp.dir.writeFile(
+        "plan.html",
+        \\<html><body>
+        \\  <script type="application/json" id="plan-data">
+        \\    {"title":"HTML Fixture","schemaVersion":1}
+        \\  </script>
+        \\</body></html>
+    );
+
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "read", input_path }, std.testing.io, &stdout, &stderr);
+    const output = stdout_buffer[0..stdout.end];
+
+    try std.testing.expectEqual(ExitCode.ok, code);
+    try std.testing.expect(std.mem.indexOf(u8, output, "\"title\":\"HTML Fixture\"") != null);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+}
+
+test "plan read rejects missing and extra arguments with usage" {
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const missing_arg_code = try runArgs(&.{ "plan", "read" }, std.testing.io, &stdout, &stderr);
+    try std.testing.expectEqual(ExitCode.usage, missing_arg_code);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], "Usage: matcha plan read <path>") != null);
+
+    stdout.end = 0;
+    stderr.end = 0;
+    const extra_arg_code = try runArgs(
+        &.{ "plan", "read", "one.json", "two.json" },
+        std.testing.io,
+        &stdout,
+        &stderr,
+    );
+    try std.testing.expectEqual(ExitCode.usage, extra_arg_code);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], "Usage: matcha plan read <path>") != null);
+    try std.testing.expectEqual(@as(usize, 0), stdout.end);
+}
+
+test "plan read rejects unsupported non-json non-plan-html input" {
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const input_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/unsupported.txt", .{tmp.dir.path.?});
+    defer std.testing.allocator.free(input_path);
+    try tmp.dir.writeFile("unsupported.txt", "this is not json or plan html");
+
+    var stdout_buffer: [256]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "read", input_path }, std.testing.io, &stdout, &stderr);
+    try std.testing.expectEqual(ExitCode.failure, code);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], "Unsupported input:") != null);
+    try std.testing.expectEqual(@as(usize, 0), stdout.end);
 }
 
 test "render command rejects missing flag values" {
