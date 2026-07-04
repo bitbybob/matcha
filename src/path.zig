@@ -1,8 +1,6 @@
 const std = @import("std");
 
-pub const PathError = error{
-    MissingHome,
-};
+pub const PathError = error{MissingHome} || std.mem.Allocator.Error;
 
 pub fn isHomeRelative(input: []const u8) bool {
     return std.mem.eql(u8, input, "~") or
@@ -18,9 +16,7 @@ pub fn expandHomePath(
         return input;
     }
 
-    const home = getHome(allocator) catch {
-        return error.MissingHome;
-    };
+    const home = try getHome(allocator);
     if (input.len == 1) {
         return home;
     }
@@ -43,20 +39,14 @@ pub fn parentDirectory(input: []const u8) ?[]const u8 {
 }
 
 fn getHome(allocator: std.mem.Allocator) PathError![]const u8 {
-    const home: ?[]const u8 = std.process.getEnvVarOwned(allocator, "HOME") catch |err| switch (err) {
-        error.EnvironmentVariableNotFound => null,
-        else => return error.MissingHome,
-    };
+    const home = std.c.getenv("HOME");
     if (home) |value| {
-        return value;
+        return allocator.dupe(u8, std.mem.span(value));
     }
 
-    const user_profile: ?[]const u8 = std.process.getEnvVarOwned(allocator, "USERPROFILE") catch |err| switch (err) {
-        error.EnvironmentVariableNotFound => null,
-        else => return error.MissingHome,
-    };
-    if (user_profile) |value| {
-        return value;
+    const profile = std.c.getenv("USERPROFILE");
+    if (profile) |value| {
+        return allocator.dupe(u8, std.mem.span(value));
     }
 
     return error.MissingHome;

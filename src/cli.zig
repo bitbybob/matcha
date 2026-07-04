@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const assets = @import("assets.zig");
+const errors = @import("errors.zig");
 const path = @import("path.zig");
 const render_html = @import("render_html.zig");
 const render_markdown = @import("render_markdown.zig");
@@ -19,16 +20,14 @@ pub const RenderOptions = struct {
     output: []const u8,
 };
 
-pub const CliError = union(enum) {
-    missing_value: []const u8,
-    unknown_option: []const u8,
-    missing_home: []const u8,
-    path_error: []const u8,
-};
-
 pub const RenderOptionsResult = union(enum) {
     ok: RenderOptions,
-    err: CliError,
+    err: errors.CliError,
+};
+
+const InputValidationResult = union(enum) {
+    ok,
+    err: errors.CliError,
 };
 
 pub fn run(init: std.process.Init) !void {
@@ -43,7 +42,10 @@ pub fn run(init: std.process.Init) !void {
     var stderr_file_writer: std.Io.File.Writer = .init(.stderr(), init.io, &stderr_buffer);
     const stderr = &stderr_file_writer.interface;
 
-    const exit_code = try runArgs(args, stdout, stderr);
+    const exit_code = runArgs(args, init.io, stdout, stderr) catch |err| blk: {
+        try stderr.print("Internal error: {s}\n", .{@errorName(err)});
+        break :blk ExitCode.failure;
+    };
     try stdout.flush();
     try stderr.flush();
 
@@ -52,7 +54,7 @@ pub fn run(init: std.process.Init) !void {
     }
 }
 
-pub fn runArgs(args: []const []const u8, stdout: *std.Io.Writer, stderr: *std.Io.Writer) !ExitCode {
+pub fn runArgs(args: []const []const u8, io: std.Io, stdout: *std.Io.Writer, stderr: *std.Io.Writer) !ExitCode {
     const command = if (args.len > 0) args[0] else "";
 
     if (isHelpCommand(command)) {
@@ -71,11 +73,11 @@ pub fn runArgs(args: []const []const u8, stdout: *std.Io.Writer, stderr: *std.Io
     }
 
     if (std.mem.eql(u8, command, "plan")) {
-        return runRenderCommand(.plan, args[1..], stdout, stderr);
+        return runRenderCommand(.plan, io, args[1..], stdout, stderr);
     }
 
     if (std.mem.eql(u8, command, "map")) {
-        return runRenderCommand(.map, args[1..], stdout, stderr);
+        return runRenderCommand(.map, io, args[1..], stdout, stderr);
     }
 
     try writeHelp(stdout);
@@ -102,6 +104,7 @@ pub fn writeVersion(writer: *std.Io.Writer) std.Io.Writer.Error!void {
 
 fn runRenderCommand(
     target: render_html.RenderTarget,
+    io: std.Io,
     args: []const []const u8,
     stdout: *std.Io.Writer,
     stderr: *std.Io.Writer,
@@ -130,12 +133,21 @@ fn runRenderCommand(
         },
     }
 
-    if (!prepareOutputDirectory(stderr, options.output)) {
+    if (!prepareOutputDirectory(io, stderr, options.output)) {
         return .failure;
     }
 
-    try stderr.print("Rendering {s} is not implemented in the Zig CLI yet\n", .{renderTargetName(target)});
-    return .failure;
+    switch (validateInputDocument(io, std.heap.page_allocator, options.input)) {
+        .ok => {},
+        .err => |cli_error| {
+            try writeCliError(stderr, cli_error);
+            return .failure;
+        },
+    }
+
+    try writePlaceholderOutput(io, options.output);
+    try stdout.print("Wrote {s}\n", .{options.output});
+    return .ok;
 }
 
 fn normalizeRenderPaths(allocator: std.mem.Allocator, options: *RenderOptions) RenderOptionsResult {
@@ -154,9 +166,9 @@ fn normalizeRenderPaths(allocator: std.mem.Allocator, options: *RenderOptions) R
     return RenderOptionsResult{ .ok = options.* };
 }
 
-fn prepareOutputDirectory(stderr: *std.Io.Writer, output: []const u8) bool {
+fn prepareOutputDirectory(io: std.Io, stderr: *std.Io.Writer, output: []const u8) bool {
     const output_parent = path.parentDirectory(output) orelse return true;
-    std.fs.cwd().makePath(output_parent) catch |err| {
+    std.Io.Dir.cwd().createDirPath(io, output_parent) catch |err| {
         stderr.print("Cannot create output directory {s}: {s}\n", .{
             output_parent,
             @errorName(err),
@@ -164,6 +176,29 @@ fn prepareOutputDirectory(stderr: *std.Io.Writer, output: []const u8) bool {
         return false;
     };
     return true;
+}
+
+fn validateInputDocument(io: std.Io, allocator: std.mem.Allocator, input_path: []const u8) InputValidationResult {
+    const input = std.Io.Dir.cwd().readFileAlloc(io, input_path, allocator, .limited(16 * 1024 * 1024)) catch {
+        return .{ .err = .{ .cannot_read_input = input_path } };
+    };
+    defer allocator.free(input);
+
+    var arena = std.heap.ArenaAllocator.init(allocator);
+    defer arena.deinit();
+
+    const parsed = std.json.parseFromSlice(std.json.Value, arena.allocator(), input, .{}) catch {
+        return .{ .err = .{ .invalid_json = input_path } };
+    };
+    defer parsed.deinit();
+
+    return .ok;
+}
+
+fn writePlaceholderOutput(io: std.Io, output_path: []const u8) !void {
+    const file = try std.Io.Dir.cwd().createFile(io, output_path, .{ .truncate = true });
+    defer file.close(io);
+    try file.writeStreamingAll(io, "<!doctype html>\n");
 }
 
 pub fn parseRenderOptions(target: render_html.RenderTarget, args: []const []const u8) RenderOptionsResult {
@@ -213,20 +248,8 @@ fn readFlagValue(args: []const []const u8, index: usize) ?[]const u8 {
     return args[index];
 }
 
-fn writeCliError(writer: *std.Io.Writer, cli_error: CliError) std.Io.Writer.Error!void {
-    switch (cli_error) {
-        .missing_value => |flag| try writer.print("Missing value for {s}\n", .{flag}),
-        .unknown_option => |option| try writer.print("Unknown option: {s}\n", .{option}),
-        .missing_home => |value| try writer.print("Cannot expand {s}: HOME and USERPROFILE are not set\n", .{value}),
-        .path_error => |value| try writer.print("Cannot process path: {s}\n", .{value}),
-    }
-}
-
-fn renderTargetName(target: render_html.RenderTarget) []const u8 {
-    return switch (target) {
-        .plan => "plan",
-        .map => "map",
-    };
+fn writeCliError(writer: *std.Io.Writer, cli_error: errors.CliError) std.Io.Writer.Error!void {
+    return errors.writeCliError(writer, cli_error);
 }
 
 pub fn writeHelp(writer: *std.Io.Writer) std.Io.Writer.Error!void {
@@ -378,7 +401,7 @@ test "root help aliases print help" {
         var stderr_buffer: [128]u8 = undefined;
         var stdout: std.Io.Writer = .fixed(&stdout_buffer);
         var stderr: std.Io.Writer = .fixed(&stderr_buffer);
-        const code = try runArgs(&.{alias}, &stdout, &stderr);
+        const code = try runArgs(&.{alias}, std.testing.io, &stdout, &stderr);
         const output = stdout_buffer[0..stdout.end];
 
         try std.testing.expectEqual(ExitCode.ok, code);
@@ -397,7 +420,7 @@ test "root version aliases print current CLI version" {
         var stderr_buffer: [128]u8 = undefined;
         var stdout: std.Io.Writer = .fixed(&stdout_buffer);
         var stderr: std.Io.Writer = .fixed(&stderr_buffer);
-        const code = try runArgs(&.{alias}, &stdout, &stderr);
+        const code = try runArgs(&.{alias}, std.testing.io, &stdout, &stderr);
 
         try std.testing.expectEqual(ExitCode.ok, code);
         try std.testing.expectEqualStrings("matcha 0.1.0\n", stdout_buffer[0..stdout.end]);
@@ -410,7 +433,7 @@ test "usage includes embedded plan and map format instructions" {
     var stderr_buffer: [128]u8 = undefined;
     var stdout: std.Io.Writer = .fixed(&stdout_buffer);
     var stderr: std.Io.Writer = .fixed(&stderr_buffer);
-    const code = try runArgs(&.{"usage"}, &stdout, &stderr);
+    const code = try runArgs(&.{"usage"}, std.testing.io, &stdout, &stderr);
     const output = stdout_buffer[0..stdout.end];
 
     try std.testing.expectEqual(ExitCode.ok, code);
@@ -488,7 +511,7 @@ test "runArgs reports render option errors to stderr" {
     var stdout: std.Io.Writer = .fixed(&stdout_buffer);
     var stderr: std.Io.Writer = .fixed(&stderr_buffer);
 
-    const code = try runArgs(&.{ "plan", "--wat" }, &stdout, &stderr);
+    const code = try runArgs(&.{ "plan", "--wat" }, std.testing.io, &stdout, &stderr);
 
     try std.testing.expectEqual(ExitCode.usage, code);
     try std.testing.expectEqual(@as(usize, 0), stdout.end);
@@ -501,7 +524,7 @@ test "render command help aliases print subcommand help" {
     var stdout: std.Io.Writer = .fixed(&stdout_buffer);
     var stderr: std.Io.Writer = .fixed(&stderr_buffer);
 
-    const plan_code = try runArgs(&.{ "plan", "--help" }, &stdout, &stderr);
+    const plan_code = try runArgs(&.{ "plan", "--help" }, std.testing.io, &stdout, &stderr);
     const plan_output = stdout_buffer[0..stdout.end];
     try std.testing.expectEqual(ExitCode.ok, plan_code);
     try std.testing.expect(std.mem.indexOf(u8, plan_output, "matcha plan") != null);
@@ -509,11 +532,98 @@ test "render command help aliases print subcommand help" {
 
     stdout = .fixed(&stdout_buffer);
     stderr = .fixed(&stderr_buffer);
-    const map_code = try runArgs(&.{ "map", "-h" }, &stdout, &stderr);
+    const map_code = try runArgs(&.{ "map", "-h" }, std.testing.io, &stdout, &stderr);
     const map_output = stdout_buffer[0..stdout.end];
     try std.testing.expectEqual(ExitCode.ok, map_code);
     try std.testing.expect(std.mem.indexOf(u8, map_output, "matcha map") != null);
     try std.testing.expect(std.mem.indexOf(u8, map_output, "Map input format:") != null);
+}
+
+test "unknown root command prints help then error and exits non-zero" {
+    var stdout_buffer: [4096]u8 = undefined;
+    var stderr_buffer: [256]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{"nope"}, std.testing.io, &stdout, &stderr);
+    const output = stdout_buffer[0..stdout.end];
+    const error_output = stderr_buffer[0..stderr.end];
+
+    try std.testing.expectEqual(ExitCode.usage, code);
+    try std.testing.expect(std.mem.indexOf(u8, output, "Commands:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, output, "usage            Explain CLI usage and input formats for LLMs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, error_output, "Unknown command: nope") != null);
+}
+
+test "runArgs validates input file JSON before writing output" {
+    const work_dir = "/tmp/matcha-zig-e2s4";
+    const valid_input = "/tmp/matcha-zig-e2s4/valid.json";
+    const output_path = "/tmp/matcha-zig-e2s4/nested/plan.html";
+
+    defer std.fs.cwd().deleteTree(work_dir) catch {};
+    std.fs.cwd().deleteTree(work_dir) catch {};
+    try std.fs.cwd().makePath(work_dir);
+
+    var input_file = try std.fs.cwd().createFile(valid_input, .{ .truncate = true });
+    defer input_file.close();
+    try input_file.writeAll("{}");
+
+    var stdout_buffer: [1024]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "--input", valid_input, "--output", output_path }, std.testing.io, &stdout, &stderr);
+
+    try std.testing.expectEqual(ExitCode.ok, code);
+    try std.testing.expect(std.mem.indexOf(u8, stdout_buffer[0..stdout.end], "Wrote " ++ output_path) != null);
+    try std.testing.expectEqual(@as(usize, 0), stderr.end);
+}
+
+test "runArgs reports missing input files as user-facing errors" {
+    const missing_input = "/tmp/matcha-zig-e2s4/missing.json";
+    const output_path = "/tmp/matcha-zig-e2s4/output.html";
+
+    defer std.fs.cwd().deleteTree("/tmp/matcha-zig-e2s4") catch {};
+    try std.fs.cwd().makePath("/tmp/matcha-zig-e2s4");
+
+    var stdout_buffer: [1024]u8 = undefined;
+    var stderr_buffer: [256]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "--input", missing_input, "--output", output_path }, std.testing.io, &stdout, &stderr);
+
+    try std.testing.expectEqual(ExitCode.failure, code);
+    try std.testing.expectEqual(@as(usize, 0), stdout.end);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], "Cannot read ") != null);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], missing_input) != null);
+}
+
+test "runArgs reports invalid JSON as user-facing errors" {
+    const work_dir = "/tmp/matcha-zig-e2s4";
+    const invalid_input = "/tmp/matcha-zig-e2s4/invalid.json";
+    const output_path = "/tmp/matcha-zig-e2s4/invalid-output.html";
+
+    defer std.fs.cwd().deleteTree(work_dir) catch {};
+    std.fs.cwd().deleteTree(work_dir) catch {};
+    try std.fs.cwd().makePath(work_dir);
+
+    var input_file = try std.fs.cwd().createFile(invalid_input, .{ .truncate = true });
+    defer input_file.close();
+    try input_file.writeAll("not json");
+
+    var stdout_buffer: [1024]u8 = undefined;
+    var stderr_buffer: [256]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "--input", invalid_input, "--output", output_path }, std.testing.io, &stdout, &stderr);
+
+    try std.testing.expectEqual(ExitCode.failure, code);
+    try std.testing.expectEqual(@as(usize, 0), stdout.end);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], "Invalid JSON in ") != null);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], invalid_input) != null);
 }
 
 fn expectRenderOptions(result: RenderOptionsResult) RenderOptions {

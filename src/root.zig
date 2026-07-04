@@ -1,5 +1,6 @@
 pub const assets = @import("assets.zig");
 pub const cli = @import("cli.zig");
+pub const errors = @import("errors.zig");
 pub const path = @import("path.zig");
 pub const render_html = @import("render_html.zig");
 pub const render_markdown = @import("render_markdown.zig");
