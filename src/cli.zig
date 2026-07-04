@@ -192,12 +192,12 @@ fn runPlanReadCommand(
     };
     defer document.deinit();
 
-    const markdown = try render_markdown.renderPlanMarkdown(std.heap.page_allocator, document.data) catch |err| switch (err) {
+    const markdown = render_markdown.renderPlanMarkdown(std.heap.page_allocator, document.data) catch |err| switch (err) {
         render_markdown.RenderError.NotAnObject => {
             try stderr.print("Invalid plan document: expected JSON object\n", .{});
             return .failure;
         },
-        error.OutOfMemory => {
+        render_markdown.RenderError.OutOfMemory => {
             return .failure;
         },
     };

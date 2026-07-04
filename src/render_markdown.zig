@@ -29,7 +29,7 @@ pub fn renderPlanMarkdown(allocator: std.mem.Allocator, plan_value: std.json.Val
     return normalizeBlankLines(allocator, raw);
 }
 
-fn normalizeBlankLines(allocator: std.mem.Allocator, input: []const u8) ![]const u8 {
+fn normalizeBlankLines(allocator: std.mem.Allocator, input: []const u8) RenderError![]const u8 {
     var normalized = try std.ArrayList(u8).initCapacity(allocator, input.len);
     defer normalized.deinit(allocator);
 

@@ -66,13 +66,14 @@ pub fn parsePlanReadInput(
             else => PlanReadError.invalid_json,
         };
     };
-    const raw_output = try allocator.dupe(u8, plan_payload);
+    const raw_output = allocator.dupe(u8, plan_payload) catch return PlanReadError.out_of_memory;
     const title = extractTitle(parsed.value);
+    const title_output = allocator.dupe(u8, title) catch return PlanReadError.out_of_memory;
 
     return ParsedPlanDocument{
         .allocator = allocator,
         .raw = raw_output,
-        .title = try allocator.dupe(u8, title),
+        .title = title_output,
         .arena = arena,
         .data = parsed.value,
     };
@@ -126,8 +127,16 @@ fn detectPlanPayload(raw_input: []const u8) ?[]const u8 {
 }
 
 fn trimLeadingWhitespace(text: []const u8) []const u8 {
-    const trimmed = std.mem.trimLeft(u8, text, " \t\r\n");
-    return trimmed;
+    var index: usize = 0;
+
+    while (index < text.len) : (index += 1) {
+        switch (text[index]) {
+            ' ', '\t', '\r', '\n' => continue,
+            else => break,
+        }
+    }
+
+    return text[index..];
 }
 
 fn extractPlanDataFromHtml(raw_input: []const u8) ?[]const u8 {
