@@ -13,6 +13,22 @@ pub const ExitCode = enum(u8) {
     failure = 2,
 };
 
+pub const RenderOptions = struct {
+    target: render_html.RenderTarget,
+    input: []const u8,
+    output: []const u8,
+};
+
+pub const CliError = union(enum) {
+    missing_value: []const u8,
+    unknown_option: []const u8,
+};
+
+pub const RenderOptionsResult = union(enum) {
+    ok: RenderOptions,
+    err: CliError,
+};
+
 pub fn run(init: std.process.Init) !void {
     const argv = try init.minimal.args.toSlice(init.arena.allocator());
     const args = if (argv.len > 0) argv[1..] else argv;
@@ -52,6 +68,14 @@ pub fn runArgs(args: []const []const u8, stdout: *std.Io.Writer, stderr: *std.Io
         return .ok;
     }
 
+    if (std.mem.eql(u8, command, "plan")) {
+        return runRenderCommand(.plan, args[1..], stdout, stderr);
+    }
+
+    if (std.mem.eql(u8, command, "map")) {
+        return runRenderCommand(.map, args[1..], stdout, stderr);
+    }
+
     try writeHelp(stdout);
     try stdout.writeByte('\n');
     try stderr.print("Unknown command: {s}\n", .{command});
@@ -72,6 +96,93 @@ fn isVersionCommand(command: []const u8) bool {
 
 pub fn writeVersion(writer: *std.Io.Writer) std.Io.Writer.Error!void {
     try writer.print("matcha {s}\n", .{version});
+}
+
+fn runRenderCommand(
+    target: render_html.RenderTarget,
+    args: []const []const u8,
+    stdout: *std.Io.Writer,
+    stderr: *std.Io.Writer,
+) !ExitCode {
+    if (args.len > 0 and isHelpCommand(args[0])) {
+        switch (target) {
+            .plan => try writePlanHelp(stdout),
+            .map => try writeMapHelp(stdout),
+        }
+        return .ok;
+    }
+
+    switch (parseRenderOptions(target, args)) {
+        .ok => {},
+        .err => |cli_error| {
+            try writeCliError(stderr, cli_error);
+            return .usage;
+        },
+    }
+
+    try stderr.print("Rendering {s} is not implemented in the Zig CLI yet\n", .{renderTargetName(target)});
+    return .failure;
+}
+
+pub fn parseRenderOptions(target: render_html.RenderTarget, args: []const []const u8) RenderOptionsResult {
+    var options: RenderOptions = .{
+        .target = target,
+        .input = render_html.defaultInput(target),
+        .output = render_html.defaultOutput(target),
+    };
+
+    var index: usize = 0;
+    while (index < args.len) : (index += 1) {
+        const arg = args[index];
+
+        if (std.mem.eql(u8, arg, "--input") or std.mem.eql(u8, arg, "-i")) {
+            index += 1;
+            options.input = readFlagValue(args, index) orelse return .{ .err = .{ .missing_value = arg } };
+            continue;
+        }
+
+        if (std.mem.startsWith(u8, arg, "--input=")) {
+            options.input = arg["--input=".len..];
+            continue;
+        }
+
+        if (std.mem.eql(u8, arg, "--output") or std.mem.eql(u8, arg, "-o")) {
+            index += 1;
+            options.output = readFlagValue(args, index) orelse return .{ .err = .{ .missing_value = arg } };
+            continue;
+        }
+
+        if (std.mem.startsWith(u8, arg, "--output=")) {
+            options.output = arg["--output=".len..];
+            continue;
+        }
+
+        return .{ .err = .{ .unknown_option = arg } };
+    }
+
+    return .{ .ok = options };
+}
+
+fn readFlagValue(args: []const []const u8, index: usize) ?[]const u8 {
+    if (index >= args.len or std.mem.startsWith(u8, args[index], "-")) {
+        return null;
+    }
+
+    return args[index];
+}
+
+fn writeCliError(writer: *std.Io.Writer, cli_error: CliError) std.Io.Writer.Error!void {
+    switch (cli_error) {
+        .missing_value => |flag| try writer.print("Missing value for {s}\n", .{flag}),
+        .unknown_option => |option| try writer.print("Unknown option: {s}\n", .{option}),
+    }
+}
+
+fn renderTargetName(target: render_html.RenderTarget) []const u8 {
+    return switch (target) {
+        .plan => "plan",
+        .map => "map",
+    };
 }
 
 pub fn writeHelp(writer: *std.Io.Writer) std.Io.Writer.Error!void {
@@ -100,6 +211,51 @@ pub fn writeHelp(writer: *std.Io.Writer) std.Io.Writer.Error!void {
         \\  -o, --output <path>   HTML file to write
         \\
     );
+}
+
+pub fn writePlanHelp(writer: *std.Io.Writer) std.Io.Writer.Error!void {
+    try writer.writeAll(
+        \\matcha plan
+        \\
+        \\Usage:
+        \\  matcha plan [options]
+        \\  matcha plan read <path>
+        \\
+        \\Render a plan JSON file to a self-contained HTML page. Without --input, it reads
+        \\sample_plan.json; without --output, it writes dist/plan.html.
+        \\
+        \\Options:
+        \\  -i, --input <path>    Plan JSON file to render
+        \\  -o, --output <path>   HTML file to write
+        \\
+        \\Read subcommand:
+        \\  matcha plan read <path>  Print a matcha plan as Markdown to stdout. The path can be
+        \\                        raw plan JSON or a matcha-generated plan HTML file.
+        \\
+        \\Plan input format:
+        \\
+    );
+    try writeIndentedTrimmed(writer, assets.llm_output_format.contents);
+}
+
+pub fn writeMapHelp(writer: *std.Io.Writer) std.Io.Writer.Error!void {
+    try writer.writeAll(
+        \\matcha map
+        \\
+        \\Usage:
+        \\  matcha map [options]
+        \\
+        \\Render a UML-style map JSON file to a self-contained HTML page. Without --input,
+        \\it reads sample_map.json; without --output, it writes dist/map.html.
+        \\
+        \\Options:
+        \\  -i, --input <path>    Map JSON file to render
+        \\  -o, --output <path>   HTML file to write
+        \\
+        \\Map input format:
+        \\
+    );
+    try writeIndentedTrimmed(writer, assets.llm_uml_output_format.contents);
 }
 
 pub fn writeUsageGuide(writer: *std.Io.Writer) std.Io.Writer.Error!void {
@@ -220,4 +376,131 @@ test "usage includes embedded plan and map format instructions" {
     try std.testing.expect(std.mem.indexOf(u8, output, "Map input format:") != null);
     try std.testing.expect(std.mem.indexOf(u8, output, "  Map input format") != null);
     try std.testing.expectEqual(@as(usize, 0), stderr.end);
+}
+
+test "render command defaults match current CLI" {
+    const plan_options = expectRenderOptions(parseRenderOptions(.plan, &.{}));
+    try std.testing.expectEqual(render_html.RenderTarget.plan, plan_options.target);
+    try std.testing.expectEqualStrings("sample_plan.json", plan_options.input);
+    try std.testing.expectEqualStrings("dist/plan.html", plan_options.output);
+
+    const map_options = expectRenderOptions(parseRenderOptions(.map, &.{}));
+    try std.testing.expectEqual(render_html.RenderTarget.map, map_options.target);
+    try std.testing.expectEqualStrings("sample_map.json", map_options.input);
+    try std.testing.expectEqualStrings("dist/map.html", map_options.output);
+}
+
+test "render command parses separated input and output flags" {
+    const plan_options = expectRenderOptions(parseRenderOptions(.plan, &.{
+        "-i",
+        "plans/input.json",
+        "-o",
+        "dist/custom-plan.html",
+    }));
+    try std.testing.expectEqualStrings("plans/input.json", plan_options.input);
+    try std.testing.expectEqualStrings("dist/custom-plan.html", plan_options.output);
+
+    const map_options = expectRenderOptions(parseRenderOptions(.map, &.{
+        "--input",
+        "maps/input.json",
+        "--output",
+        "dist/custom-map.html",
+    }));
+    try std.testing.expectEqualStrings("maps/input.json", map_options.input);
+    try std.testing.expectEqualStrings("dist/custom-map.html", map_options.output);
+}
+
+test "render command parses equals-style input and output flags" {
+    const plan_options = expectRenderOptions(parseRenderOptions(.plan, &.{
+        "--input=plans/input.json",
+        "--output=dist/custom-plan.html",
+    }));
+    try std.testing.expectEqualStrings("plans/input.json", plan_options.input);
+    try std.testing.expectEqualStrings("dist/custom-plan.html", plan_options.output);
+
+    const map_options = expectRenderOptions(parseRenderOptions(.map, &.{
+        "--output=dist/custom-map.html",
+        "--input=maps/input.json",
+    }));
+    try std.testing.expectEqualStrings("maps/input.json", map_options.input);
+    try std.testing.expectEqualStrings("dist/custom-map.html", map_options.output);
+}
+
+test "render command rejects missing flag values" {
+    try expectMissingValue("-i", parseRenderOptions(.plan, &.{"-i"}));
+    try expectMissingValue("--input", parseRenderOptions(.plan, &.{ "--input", "--output", "dist/plan.html" }));
+    try expectMissingValue("-o", parseRenderOptions(.map, &.{"-o"}));
+    try expectMissingValue("--output", parseRenderOptions(.map, &.{ "--output", "-i", "sample_map.json" }));
+}
+
+test "render command rejects unknown options" {
+    try expectUnknownOption("--theme", parseRenderOptions(.plan, &.{ "--theme", "dracula" }));
+    try expectUnknownOption("sample_map.json", parseRenderOptions(.map, &.{"sample_map.json"}));
+}
+
+test "runArgs reports render option errors to stderr" {
+    var stdout_buffer: [2048]u8 = undefined;
+    var stderr_buffer: [256]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const code = try runArgs(&.{ "plan", "--wat" }, &stdout, &stderr);
+
+    try std.testing.expectEqual(ExitCode.usage, code);
+    try std.testing.expectEqual(@as(usize, 0), stdout.end);
+    try std.testing.expect(std.mem.indexOf(u8, stderr_buffer[0..stderr.end], "Unknown option: --wat") != null);
+}
+
+test "render command help aliases print subcommand help" {
+    var stdout_buffer: [32768]u8 = undefined;
+    var stderr_buffer: [128]u8 = undefined;
+    var stdout: std.Io.Writer = .fixed(&stdout_buffer);
+    var stderr: std.Io.Writer = .fixed(&stderr_buffer);
+
+    const plan_code = try runArgs(&.{ "plan", "--help" }, &stdout, &stderr);
+    const plan_output = stdout_buffer[0..stdout.end];
+    try std.testing.expectEqual(ExitCode.ok, plan_code);
+    try std.testing.expect(std.mem.indexOf(u8, plan_output, "matcha plan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, plan_output, "Plan input format:") != null);
+
+    stdout = .fixed(&stdout_buffer);
+    stderr = .fixed(&stderr_buffer);
+    const map_code = try runArgs(&.{ "map", "-h" }, &stdout, &stderr);
+    const map_output = stdout_buffer[0..stdout.end];
+    try std.testing.expectEqual(ExitCode.ok, map_code);
+    try std.testing.expect(std.mem.indexOf(u8, map_output, "matcha map") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map_output, "Map input format:") != null);
+}
+
+fn expectRenderOptions(result: RenderOptionsResult) RenderOptions {
+    return switch (result) {
+        .ok => |options| options,
+        .err => unreachable,
+    };
+}
+
+fn expectMissingValue(expected_flag: []const u8, result: RenderOptionsResult) !void {
+    switch (result) {
+        .ok => return error.ExpectedError,
+        .err => |cli_error| switch (cli_error) {
+            .missing_value => |flag| {
+                try std.testing.expectEqualStrings(expected_flag, flag);
+                return;
+            },
+            .unknown_option => return error.WrongError,
+        },
+    }
+}
+
+fn expectUnknownOption(expected_option: []const u8, result: RenderOptionsResult) !void {
+    switch (result) {
+        .ok => return error.ExpectedError,
+        .err => |cli_error| switch (cli_error) {
+            .missing_value => return error.WrongError,
+            .unknown_option => |option| {
+                try std.testing.expectEqualStrings(expected_option, option);
+                return;
+            },
+        },
+    }
 }
